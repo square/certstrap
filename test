@@ -1,0 +1,25 @@
+#!/bin/bash -e
+# Copyright (C) 2015 Square, Inc.
+
+source ./build
+
+if [ -z "$PKG" ]; then
+    PKG="depot pkix tests"
+fi
+
+cover=false
+if [ "$1" = "-c" ]; then
+  cover=true
+fi
+
+# Unit tests
+echo
+for mod in $PKG; do
+  mod_path=$REPO_PATH/$mod
+  go test -i $mod_path
+  if $cover; then
+    godep go test -cover -coverprofile="$mod"_cover.out -v $mod_path
+  else
+    godep go test -cover -v $mod_path
+  fi
+done
