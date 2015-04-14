@@ -1,5 +1,6 @@
 #!/bin/bash -e
 # Copyright (C) 2015 Square, Inc.
+# Copyright (C) 2014 CoreOS
 
 ORG_PATH="github.com/square"
 REPO_PATH="${ORG_PATH}/certstrap"
