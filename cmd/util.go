@@ -22,10 +22,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/square/certstrap/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
+	"github.com/square/certstrap/Godeps/_workspace/src/github.com/howeyc/gopass"
 	"github.com/square/certstrap/depot"
 )
 
@@ -48,15 +47,9 @@ func InitDepot(path string) error {
 
 func createPassPhrase() ([]byte, error) {
 	fmt.Fprint(os.Stderr, "Enter passphrase (empty for no passphrase): ")
-	pass1, err := terminal.ReadPassword(syscall.Stdin)
-	if err != nil {
-		return nil, err
-	}
+	pass1 := gopass.GetPasswd()
 	fmt.Fprint(os.Stderr, "\nEnter same passphrase again: ")
-	pass2, err := terminal.ReadPassword(syscall.Stdin)
-	if err != nil {
-		return nil, err
-	}
+	pass2 := gopass.GetPasswd()
 	fmt.Fprintln(os.Stderr)
 
 	if bytes.Compare(pass1, pass2) != 0 {
@@ -67,7 +60,7 @@ func createPassPhrase() ([]byte, error) {
 
 func askPassPhrase(name string) []byte {
 	fmt.Fprintf(os.Stderr, "Enter passphrase for %v (empty for no passphrase): ", name)
-	pass, _ := terminal.ReadPassword(syscall.Stdin)
+	pass := gopass.GetPasswd()
 	fmt.Fprintln(os.Stderr)
 	return pass
 }
