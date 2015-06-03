@@ -20,6 +20,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
@@ -47,14 +48,14 @@ func newSignAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "One host name must be provided.")
 		os.Exit(1)
 	}
-	name := c.Args()[0]
+	formattedName := strings.Replace(c.Args()[0], " ", "_", -1)
 
-	if depot.CheckCertificate(d, name) {
+	if depot.CheckCertificate(d, formattedName) {
 		fmt.Fprintln(os.Stderr, "Certificate has existed!")
 		os.Exit(1)
 	}
 
-	csr, err := depot.GetCertificateSigningRequest(d, name)
+	csr, err := depot.GetCertificateSigningRequest(d, formattedName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Get certificate request error:", err)
 		os.Exit(1)
@@ -79,7 +80,7 @@ func newSignAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
 	} else {
-		fmt.Printf("Created %s/%s.crt from %s/%s.csr signed by %s/%s.key\n", depotDir, name, depotDir, name, depotDir, c.String("CA"))
+		fmt.Printf("Created %s/%s.crt from %s/%s.csr signed by %s/%s.key\n", depotDir, formattedName, depotDir, formattedName, depotDir, c.String("CA"))
 	}
 
 	if c.Bool("stdout") {
@@ -92,7 +93,7 @@ func newSignAction(c *cli.Context) {
 		}
 	}
 
-	if err = depot.PutCertificate(d, name, crtHost); err != nil {
+	if err = depot.PutCertificate(d, formattedName, crtHost); err != nil {
 		fmt.Fprintln(os.Stderr, "Save certificate error:", err)
 	}
 }

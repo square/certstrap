@@ -74,7 +74,9 @@ func newCertAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	if depot.CheckCertificateSigningRequest(d, name) || depot.CheckPrivateKey(d, name) {
+	formattedName := strings.Replace(name, " ", "_", -1)
+
+	if depot.CheckCertificateSigningRequest(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
 		fmt.Fprintln(os.Stderr, "Certificate request has existed!")
 		os.Exit(1)
 	}
@@ -107,9 +109,9 @@ func newCertAction(c *cli.Context) {
 			os.Exit(1)
 		}
 		if len(passphrase) > 0 {
-			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, name)
+			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, formattedName)
 		} else {
-			fmt.Printf("Created %s/%s.key\n", depotDir, name)
+			fmt.Printf("Created %s/%s.key\n", depotDir, formattedName)
 		}
 	}
 
@@ -118,7 +120,7 @@ func newCertAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Create certificate request error:", err)
 		os.Exit(1)
 	} else {
-		fmt.Printf("Created %s/%s.csr\n", depotDir, name)
+		fmt.Printf("Created %s/%s.csr\n", depotDir, formattedName)
 	}
 
 	if c.Bool("stdout") {
@@ -131,15 +133,15 @@ func newCertAction(c *cli.Context) {
 		}
 	}
 
-	if err = depot.PutCertificateSigningRequest(d, name, csr); err != nil {
+	if err = depot.PutCertificateSigningRequest(d, formattedName, csr); err != nil {
 		fmt.Fprintln(os.Stderr, "Save certificate request error:", err)
 	}
 	if len(passphrase) > 0 {
-		if err = depot.PutEncryptedPrivateKey(d, name, key, passphrase); err != nil {
+		if err = depot.PutEncryptedPrivateKey(d, formattedName, key, passphrase); err != nil {
 			fmt.Fprintln(os.Stderr, "Save encrypted private key error:", err)
 		}
 	} else {
-		if err = depot.PutPrivateKey(d, name, key); err != nil {
+		if err = depot.PutPrivateKey(d, formattedName, key); err != nil {
 			fmt.Fprintln(os.Stderr, "Save private key error:", err)
 		}
 	}

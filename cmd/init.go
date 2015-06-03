@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
@@ -57,9 +58,9 @@ func initAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	name := c.String("common-name")
+	formattedName := strings.Replace(c.String("common-name"), " ", "_", -1)
 
-	if depot.CheckCertificate(d, name) || depot.CheckPrivateKey(d, name) {
+	if depot.CheckCertificate(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
 		fmt.Fprintln(os.Stderr, "CA with specified name already exists!")
 		os.Exit(1)
 	}
@@ -84,7 +85,7 @@ func initAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Read %s.key\n", name)
+		fmt.Printf("Read %s\n", c.String("key"))
 	} else {
 		key, err = pkix.CreateRSAKey(c.Int("key-bits"))
 		if err != nil {
@@ -92,9 +93,9 @@ func initAction(c *cli.Context) {
 			os.Exit(1)
 		}
 		if len(passphrase) > 0 {
-			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, name)
+			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, formattedName)
 		} else {
-			fmt.Printf("Created %s/%s.key\n", depotDir, name)
+			fmt.Printf("Created %s/%s.key\n", depotDir, formattedName)
 		}
 	}
 
@@ -103,7 +104,7 @@ func initAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
 	} else {
-		fmt.Printf("Created %s/%s.crt\n", depotDir, name)
+		fmt.Printf("Created %s/%s.crt\n", depotDir, formattedName)
 	}
 
 	if c.Bool("stdout") {
@@ -116,15 +117,15 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	if err = depot.PutCertificate(d, name, crt); err != nil {
+	if err = depot.PutCertificate(d, formattedName, crt); err != nil {
 		fmt.Fprintln(os.Stderr, "Save certificate error:", err)
 	}
 	if len(passphrase) > 0 {
-		if err = depot.PutEncryptedPrivateKey(d, name, key, passphrase); err != nil {
+		if err = depot.PutEncryptedPrivateKey(d, formattedName, key, passphrase); err != nil {
 			fmt.Fprintln(os.Stderr, "Save encrypted private key error:", err)
 		}
 	} else {
-		if err = depot.PutPrivateKey(d, name, key); err != nil {
+		if err = depot.PutPrivateKey(d, formattedName, key); err != nil {
 			fmt.Fprintln(os.Stderr, "Save private key error:", err)
 		}
 	}
