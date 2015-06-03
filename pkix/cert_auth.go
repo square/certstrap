@@ -61,6 +61,8 @@ var (
 		IsCA: true,
 		// Not allow any non-self-issued intermediate CA
 		MaxPathLen: 0,
+		// Must be true if MaxPathLen==0
+		MaxPathLenZero: true,
 
 		// 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
 		// (excluding the tag, length, and number of unused bits)
