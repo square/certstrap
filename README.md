@@ -46,6 +46,14 @@ Note that the `-common-name` flag is required, and will be used to name output f
 Moreover, this will also generate a new keypair for the Certificate Authority,
 though you can use a pre-existing private PEM key with the `-key` flag.
 
+If the CN contains spaces, certstrap will change them to underscores in the filename for easier use.  The spaces will be preserved inside the fields of the generated files:
+
+```
+$ ./certstrap init --common-name "Cert Auth"
+Created out/Cert_Auth.key
+Created out/Cert_Auth.crt
+```
+
 ### Request a certificate, including keypair:
 
 ```
