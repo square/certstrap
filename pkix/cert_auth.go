@@ -59,8 +59,8 @@ var (
 		// activate CA
 		BasicConstraintsValid: true,
 		IsCA: true,
-		// Not allow any non-self-issued intermediate CA
-		MaxPathLen: 0,
+		// Not allow any non-self-issued intermediate CA, sets MaxPathLen=0
+		MaxPathLenZero: true,
 
 		// 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
 		// (excluding the tag, length, and number of unused bits)
