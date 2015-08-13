@@ -68,7 +68,7 @@ func newCertAction(c *cli.Context) {
 	case len(domains) != 0:
 		name = domains[0]
 	case len(ips) != 0:
-		name = string(ips[0])
+		name = ips[0].String()
 	default:
 		fmt.Fprintln(os.Stderr, "Must provide Common Name or SAN")
 		os.Exit(1)
