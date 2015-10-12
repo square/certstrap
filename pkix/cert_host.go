@@ -77,7 +77,14 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 
 	hostTemplate.Subject = rawCsr.Subject
 
-	hostTemplate.NotAfter = time.Now().AddDate(years, 0, 0).UTC()
+	caExpiry := time.Now().Add(crtAuth.GetExpirationDuration())
+	proposedExpiry := time.Now().AddDate(years, 0, 0).UTC()
+	// ensure cert doesn't expire after issuer
+	if caExpiry.Before(proposedExpiry) {
+		hostTemplate.NotAfter = caExpiry
+	} else {
+		hostTemplate.NotAfter = proposedExpiry
+	}
 
 	hostTemplate.SubjectKeyId, err = GenerateSubjectKeyID(rawCsr.PublicKey)
 	if err != nil {

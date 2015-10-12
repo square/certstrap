@@ -37,9 +37,12 @@ func TestCreateCertificateHost(t *testing.T) {
 		t.Fatal("Failed parsing certificate request from PEM:", err)
 	}
 
-	crt, err := CreateCertificateHost(crtAuth, key, csr, 1)
+	crt, err := CreateCertificateHost(crtAuth, key, csr, 5000)
 	if err != nil {
 		t.Fatal("Failed creating certificate for host:", err)
+	}
+	if crt.GetExpirationDuration() > crtAuth.GetExpirationDuration() {
+		t.Fatal("Cert expires after issuer")
 	}
 
 	rawCrt, err := crt.GetRawCertificate()
