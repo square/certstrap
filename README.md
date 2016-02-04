@@ -39,6 +39,7 @@ handle the latter two for you).
 $ ./certstrap init --common-name "CertAuth"
 Created out/CertAuth.key
 Created out/CertAuth.crt
+Created out/CertAuth.crl
 ```
 
 Note that the `-common-name` flag is required, and will be used to name output files.

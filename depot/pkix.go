@@ -27,6 +27,7 @@ const (
 	crtSuffix     = ".crt"
 	csrSuffix     = ".csr"
 	privKeySuffix = ".key"
+	crlSuffix     = ".crl"
 )
 
 const (
@@ -47,6 +48,11 @@ func PrivKeyTag(prefix string) *Tag {
 // CsrTag returns a tag corresponding to a certificate signature request file
 func CsrTag(prefix string) *Tag {
 	return &Tag{prefix + csrSuffix, leafPerm}
+}
+
+// CrlTag returns a tag corresponding to a certificate revocation list
+func CrlTag(prefix string) *Tag {
+	return &Tag{prefix + crlSuffix, leafPerm}
 }
 
 // GetNameFromCrtTag returns the host name from a certificate file tag
@@ -153,4 +159,13 @@ func GetEncryptedPrivateKey(d Depot, name string, passphrase []byte) (key *pkix.
 		return nil, err
 	}
 	return pkix.NewKeyFromEncryptedPrivateKeyPEM(b, passphrase)
+}
+
+// PutCertificateRevocationList creates a CRL file for a given name and ca in the depot
+func PutCertificateRevocationList(d Depot, name string, crl *pkix.CertificateRevocationList) error {
+	b, err := crl.Export()
+	if err != nil {
+		return err
+	}
+	return d.Put(CrlTag(name), b)
 }
