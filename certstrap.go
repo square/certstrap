@@ -31,7 +31,12 @@ func main() {
 	app.Version = "0.1.0"
 	app.Usage = "A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure."
 	app.Flags = []cli.Flag{
-		cli.StringFlag{"depot-path", depot.DefaultFileDepotDir, "Location to store certificates, keys and other files.", ""},
+		cli.StringFlag{
+			Name:   "depot-path",
+			Value:  depot.DefaultFileDepotDir,
+			Usage:  "Location to store certificates, keys and other files.",
+			EnvVar: "",
+		},
 	}
 	app.Author = "Square Inc., CoreOS"
 	app.Email = ""
