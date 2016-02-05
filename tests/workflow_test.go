@@ -33,8 +33,8 @@ func TestWorkflow(t *testing.T) {
 	if stderr != "" || err != nil {
 		t.Fatalf("Received unexpected error: %v, %v", stderr, err)
 	}
-	if strings.Count(stdout, "Created") != 2 {
-		t.Fatalf("Received insufficient create: %v", stdout)
+	if strings.Count(stdout, "Created") != 3 {
+		t.Fatalf("Received incorrect create: %v", stdout)
 	}
 
 	stdout, stderr, err = run(binPath, "request-cert", "--passphrase", passphrase, "--common-name", hostname)
@@ -42,7 +42,7 @@ func TestWorkflow(t *testing.T) {
 		t.Fatalf("Received unexpected error: %v, %v", stderr, err)
 	}
 	if strings.Count(stdout, "Created") != 2 {
-		t.Fatalf("Received insufficient create: %v", stdout)
+		t.Fatalf("Received incorrect create: %v", stdout)
 	}
 
 	stdout, stderr, err = run(binPath, "request-cert", "--passphrase", passphrase, "--ip", "127.0.0.1,8.8.8.8")
@@ -50,7 +50,7 @@ func TestWorkflow(t *testing.T) {
 		t.Fatalf("Received unexpected error: %v, %v", stderr, err)
 	}
 	if strings.Count(stdout, "Created") != 2 {
-		t.Fatalf("Received insufficient create: %v", stdout)
+		t.Fatalf("Received incorrect create: %v", stdout)
 	}
 
 	stdout, stderr, err = run(binPath, "sign", "--passphrase", passphrase, "--CA", "CA", hostname)
@@ -58,7 +58,7 @@ func TestWorkflow(t *testing.T) {
 		t.Fatalf("Received unexpected error: %v, %v", stderr, err)
 	}
 	if strings.Count(stdout, "Created") != 1 {
-		t.Fatalf("Received insufficient create: %v", stdout)
+		t.Fatalf("Received incorrect create: %v", stdout)
 	}
 
 }

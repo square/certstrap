@@ -103,9 +103,8 @@ func initAction(c *cli.Context) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
-	} else {
-		fmt.Printf("Created %s/%s.crt\n", depotDir, formattedName)
 	}
+	fmt.Printf("Created %s/%s.crt\n", depotDir, formattedName)
 
 	if c.Bool("stdout") {
 		crtBytes, err := crt.Export()
@@ -129,4 +128,16 @@ func initAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Save private key error:", err)
 		}
 	}
+
+	// Create an empty CRL, this is useful for Java apps which mandate a CRL.
+	crl, err := pkix.CreateCertificateRevocationList(key, crt, c.Int("years"))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Create CRL error:", err)
+		os.Exit(1)
+	}
+	if err = depot.PutCertificateRevocationList(d, formattedName, crl); err != nil {
+		fmt.Fprintln(os.Stderr, "Save CRL error:", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Created %s/%s.crl\n", depotDir, formattedName)
 }
