@@ -3,6 +3,8 @@
 
 A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure.  Adapted from etcd-ca.
 
+certstrap is a very convenient app if you don't feel like dealing with openssl, its myriad of options or config files.
+
 ## Common Uses
 
 certstrap allows you to build your own certificate system:
@@ -13,7 +15,7 @@ certstrap allows you to build your own certificate system:
 
 ## Certificate architecture
 
-certstrap can init multiple certificate authorities to sign certificates with.  Users can make arbitrarily long certificate chains by using signed hosts to sign later certificate requests, as well. 
+certstrap can init multiple certificate authorities to sign certificates with.  Users can make arbitrarily long certificate chains by using signed hosts to sign later certificate requests, as well.
 
 ## Examples
 
@@ -36,7 +38,7 @@ handle the latter two for you).
 ### Initialize a new certificate authority:
 
 ```
-$ ./certstrap init --common-name "CertAuth"
+$ ./bin/certstrap init --common-name "CertAuth"
 Created out/CertAuth.key
 Created out/CertAuth.crt
 Created out/CertAuth.crl
@@ -50,15 +52,16 @@ though you can use a pre-existing private PEM key with the `-key` flag.
 If the CN contains spaces, certstrap will change them to underscores in the filename for easier use.  The spaces will be preserved inside the fields of the generated files:
 
 ```
-$ ./certstrap init --common-name "Cert Auth"
+$ ./bin/certstrap init --common-name "Cert Auth"
 Created out/Cert_Auth.key
 Created out/Cert_Auth.crt
+Created out/Cert_Auth.crl
 ```
 
 ### Request a certificate, including keypair:
 
 ```
-$ ./certstrap request-cert --common-name Alice
+$ ./bin/certstrap request-cert --common-name Alice
 Created out/Alice.key
 Created out/Alice.csr
 ```
@@ -73,7 +76,7 @@ PEM key with the `-key` flag
 ### Sign certificate request of host and generate the certificate:
 
 ```
-$ ./certstrap sign Alice --CA CertAuth
+$ ./bin/certstrap sign Alice --CA CertAuth
 Created out/Alice.crt from out/Alice.csr signed by out/CertAuth.key
 ```
 
@@ -87,8 +90,8 @@ $ openssl pkcs12 -export -out outputCert.p12 -inkey inputKey.key -in inputCert.c
 
 ### Retrieving Files
 
-Outputted key, request, and certificate files can be found in the depot file.
-By default, this is in `bin/out`
+Outputted key, request, and certificate files can be found in the depot directory.
+By default, this is in `out/`
 
 
 ## Project Details
