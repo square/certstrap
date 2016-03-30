@@ -31,6 +31,7 @@ import (
 	"math/big"
 	"net"
 	"strings"
+	"fmt"
 )
 
 const (
@@ -58,7 +59,7 @@ func ParseAndValidateIPs(ipList string) (res []net.IP, err error) {
 		if len(ip) > 0 {
 			parsedIP := net.ParseIP(ip)
 			if parsedIP == nil {
-				return nil, errors.New(ip)
+				return nil, errors.New(fmt.Sprintf("Invalid IP address: %s", ip))
 			}
 			res = append(res, parsedIP)
 		}

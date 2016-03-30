@@ -59,7 +59,7 @@ func newCertAction(c *cli.Context) {
 	ips, err := pkix.ParseAndValidateIPs(c.String("ip"))
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Invalid IP address:", err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
