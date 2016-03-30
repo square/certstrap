@@ -56,6 +56,7 @@ func newCertAction(c *cli.Context) {
 	var name = ""
 	var err error
 
+	// The CLI Context returns an empty string ("") if no value is available
 	ips, err := pkix.ParseAndValidateIPs(c.String("ip"))
 
 	if err != nil {
