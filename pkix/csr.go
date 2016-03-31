@@ -60,7 +60,7 @@ func ParseAndValidateIPs(ipList string) (res []net.IP, err error) {
 		for _, ip := range ips {
 			parsedIP := net.ParseIP(ip)
 			if parsedIP == nil {
-				return nil, errors.New(fmt.Sprintf("Invalid IP address: %s", ip))
+				return nil, fmt.Errorf("Invalid IP address: %s", ip)
 			}
 			res = append(res, parsedIP)
 		}
