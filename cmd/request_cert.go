@@ -54,8 +54,15 @@ func NewCertRequestCommand() cli.Command {
 
 func newCertAction(c *cli.Context) {
 	var name = ""
+	var err error
 
-	ips := pkix.ParseAndValidateIPs(c.String("ip"))
+	// The CLI Context returns an empty string ("") if no value is available
+	ips, err := pkix.ParseAndValidateIPs(c.String("ip"))
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 	domains := strings.Split(c.String("domain"), ",")
 	if c.String("domain") == "" {
@@ -82,7 +89,6 @@ func newCertAction(c *cli.Context) {
 	}
 
 	var passphrase []byte
-	var err error
 	if c.IsSet("passphrase") {
 		passphrase = []byte(c.String("passphrase"))
 	} else {

@@ -28,6 +28,7 @@ import (
 	"encoding/asn1"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"math/big"
 	"net"
 	"strings"
@@ -52,14 +53,17 @@ var (
 )
 
 // ParseAndValidateIPs parses a comma-delimited list of IP addresses into an array of IP addresses
-func ParseAndValidateIPs(ipList string) (res []net.IP) {
-	ips := strings.Split(ipList, ",")
-	for _, ip := range ips {
-		parsedIP := net.ParseIP(ip)
-		if parsedIP == nil {
-			return nil
+func ParseAndValidateIPs(ipList string) (res []net.IP, err error) {
+	// IP list can potentially be a blank string, ""
+	if len(ipList) > 0 {
+		ips := strings.Split(ipList, ",")
+		for _, ip := range ips {
+			parsedIP := net.ParseIP(ip)
+			if parsedIP == nil {
+				return nil, errors.New(fmt.Sprintf("Invalid IP address: %s", ip))
+			}
+			res = append(res, parsedIP)
 		}
-		res = append(res, parsedIP)
 	}
 	return
 }
