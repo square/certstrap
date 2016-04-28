@@ -75,7 +75,10 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 		return nil, err
 	}
 
-	hostTemplate.Subject = rawCsr.Subject
+	// pkix.Name{} doesn't take ordering into account.
+	// RawSubject works because CreateCertificate() first checks if
+	// RawSubject has a value.
+	hostTemplate.RawSubject = rawCsr.RawSubject
 
 	caExpiry := time.Now().Add(crtAuth.GetExpirationDuration())
 	proposedExpiry := time.Now().AddDate(years, 0, 0).UTC()
