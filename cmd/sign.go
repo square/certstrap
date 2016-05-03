@@ -66,6 +66,19 @@ func newSignAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Get CA certificate error:", err)
 		os.Exit(1)
 	}
+	// Validate that crt is allowed to sign certificates.
+	raw_crt, err := crt.GetRawCertificate()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "GetRawCertificate failed on CA certificate:", err)
+		os.Exit(1)
+	}
+	// We punt on checking BasicConstraintsValid and checking MaxPathLen. The goal
+	// is to prevent accidentally creating invalid certificates, not protecting
+	// against malicious input.
+	if !raw_crt.IsCA {
+		fmt.Fprintln(os.Stderr, "Selected CA certificate is not allowed to sign certificates.")
+		os.Exit(1)
+	}
 
 	key, err := depot.GetPrivateKey(d, formattedCAName)
 	if err != nil {
