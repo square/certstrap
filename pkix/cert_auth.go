@@ -127,7 +127,7 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 		return nil, err
 	}
 
-	authTemplate.Subject = rawCsr.Subject
+	authTemplate.RawSubject = rawCsr.RawSubject
 
 	caExpiry := time.Now().Add(crtAuth.GetExpirationDuration())
 	proposedExpiry := time.Now().AddDate(years, 0, 0).UTC()
