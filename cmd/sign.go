@@ -38,6 +38,7 @@ func NewSignCommand() cli.Command {
 			cli.IntFlag{"years", 2, "How long until the certificate expires", ""},
 			cli.StringFlag{"CA", "", "CA to sign cert", ""},
 			cli.BoolFlag{"stdout", "Print certificate to stdout in addition to saving file", ""},
+			cli.BoolFlag{"intermediate", "Generated certificate should be a intermediate", ""},
 		},
 		Action: newSignAction,
 	}
@@ -89,7 +90,14 @@ func newSignAction(c *cli.Context) {
 		}
 	}
 
-	crtHost, err := pkix.CreateCertificateHost(crt, key, csr, c.Int("years"))
+	var crtOut *pkix.Certificate
+	if c.Bool("intermediate") {
+		fmt.Fprintf(os.Stderr, "Building intermediate")
+		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, c.Int("years"))
+	} else {
+		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, c.Int("years"))
+	}
+
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
@@ -98,7 +106,7 @@ func newSignAction(c *cli.Context) {
 	}
 
 	if c.Bool("stdout") {
-		crtBytes, err := crtHost.Export()
+		crtBytes, err := crtOut.Export()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Print certificate error:", err)
 			os.Exit(1)
@@ -107,7 +115,7 @@ func newSignAction(c *cli.Context) {
 		}
 	}
 
-	if err = depot.PutCertificate(d, formattedReqName, crtHost); err != nil {
+	if err = depot.PutCertificate(d, formattedReqName, crtOut); err != nil {
 		fmt.Fprintln(os.Stderr, "Save certificate error:", err)
 	}
 }

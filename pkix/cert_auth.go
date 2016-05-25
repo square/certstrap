@@ -110,3 +110,51 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, years int, 
 
 	return NewCertificateFromDER(crtBytes), nil
 }
+
+// CreateIntermediateCertificateAuthority creates an intermediate
+// CA certificate signed by the given authority.
+func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, years int) (*Certificate, error) {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, err
+	}
+	authTemplate.SerialNumber.Set(serialNumber)
+	authTemplate.MaxPathLenZero = false
+
+	rawCsr, err := csr.GetRawCertificateSigningRequest()
+	if err != nil {
+		return nil, err
+	}
+
+	authTemplate.RawSubject = rawCsr.RawSubject
+
+	caExpiry := time.Now().Add(crtAuth.GetExpirationDuration())
+	proposedExpiry := time.Now().AddDate(years, 0, 0).UTC()
+	// ensure cert doesn't expire after issuer
+	if caExpiry.Before(proposedExpiry) {
+		authTemplate.NotAfter = caExpiry
+	} else {
+		authTemplate.NotAfter = proposedExpiry
+	}
+
+	authTemplate.SubjectKeyId, err = GenerateSubjectKeyID(rawCsr.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	authTemplate.IPAddresses = rawCsr.IPAddresses
+	authTemplate.DNSNames = rawCsr.DNSNames
+
+	rawCrtAuth, err := crtAuth.GetRawCertificate()
+	if err != nil {
+		return nil, err
+	}
+
+	crtOutBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, rawCrtAuth, rawCsr.PublicKey, keyAuth.Private)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCertificateFromDER(crtOutBytes), nil
+}
