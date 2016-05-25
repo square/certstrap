@@ -54,7 +54,7 @@ func TestCreateCertificateHost(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to get x509.Certificate:", err)
 	}
-	if (!bytes.Equal(rawCrt.RawSubject, rawCsr.RawSubject)) {
+	if !bytes.Equal(rawCrt.RawSubject, rawCsr.RawSubject) {
 		t.Fatalf("Failed to preserve subject: %s %s", rawCrt.RawSubject, rawCsr.RawSubject)
 	}
 
