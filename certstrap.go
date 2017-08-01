@@ -28,7 +28,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "certstrap"
-	app.Version = "1.0.1"
+	app.Version = "1.1.0"
 	app.Usage = "A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure."
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
