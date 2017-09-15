@@ -30,13 +30,13 @@ const (
 	crlPEMBlockType = "X509 CRL"
 )
 
-func CreateCertificateRevocationList(key *Key, ca *Certificate, years int) (*CertificateRevocationList, error) {
+func CreateCertificateRevocationList(key *Key, ca *Certificate, expiry time.Time) (*CertificateRevocationList, error) {
 	rawCrt, err := ca.GetRawCertificate()
 	if err != nil {
 		return nil, err
 	}
 
-	crlBytes, err := rawCrt.CreateCRL(rand.Reader, key.Private, []pkix.RevokedCertificate{}, time.Now(), time.Now().AddDate(years, 0, 0))
+	crlBytes, err := rawCrt.CreateCRL(rand.Reader, key.Private, []pkix.RevokedCertificate{}, time.Now(), expiry)
 	if err != nil {
 		return nil, err
 	}

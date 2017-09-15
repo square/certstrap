@@ -5,7 +5,7 @@
 source ./build
 
 if [ -z "$PKG" ]; then
-    PKG="depot pkix tests"
+    PKG="cmd depot pkix tests"
 fi
 
 # Unit tests
