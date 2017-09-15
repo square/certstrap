@@ -8,6 +8,8 @@ if [ -z "$PKG" ]; then
     PKG="depot pkix tests"
 fi
 
+export BUILD_TAG="${TRAVIS_TAG:-$(git describe --all | sed -e's/.*\///g')}"
+
 # Unit tests
 echo
 for mod in $PKG; do

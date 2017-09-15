@@ -1,18 +1,24 @@
 language: go
-
 sudo: false
-
 go:
 - 1.5
 - 1.8
 - tip
-
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file:
+  - bin/certstrap-${TRAVIS_TAG}-linux-amd64
+  - bin/certstrap-${TRAVIS_TAG}-darwin-amd64
+  - bin/certstrap-${TRAVIS_TAG}-windows-amd64
+  skip_cleanup: true
+  on:
+    tags: true
+    go: 1.8
 install:
 - go get -d -t -v ./...
 - go get github.com/tools/godep
-
 before_script:
 - ./build
-
 script:
 - ./test
