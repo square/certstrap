@@ -36,6 +36,7 @@ func NewCertRequestCommand() cli.Command {
 		Description: "Create certificate for host, including certificate signing request and key.  Must sign the request in order to generate a certificate.",
 		Flags: []cli.Flag{
 			cli.StringFlag{"passphrase", "", "Passphrase to encrypt private-key PEM block", ""},
+			cli.BoolFlag{"no-password", "Do not ask for a passowrd to encrypt the private-key PEM block", ""},
 			cli.IntFlag{"key-bits", 2048, "Bit size of RSA keypair to generate", ""},
 			cli.StringFlag{"organization, o", "", "Certificate organization", ""},
 			cli.StringFlag{"country, c", "", "Certificate country", ""},
@@ -91,7 +92,7 @@ func newCertAction(c *cli.Context) {
 	var passphrase []byte
 	if c.IsSet("passphrase") {
 		passphrase = []byte(c.String("passphrase"))
-	} else {
+	} else if !c.Bool("no-password") {
 		passphrase, err = createPassPhrase()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
