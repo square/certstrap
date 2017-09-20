@@ -59,6 +59,19 @@ func newSignAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	expires := c.String("expires")
+	if years := c.Int("years"); years != 0 {
+		expires = fmt.Sprintf("%s %s years", expires, years)
+	}
+
+	// Expiry parsing is a naive regex implementation
+	// Token based parsing would provide better feedback but
+	expiresTime, err := parseExpiry(expires)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid expiry: %s\n", err)
+		os.Exit(1)
+	}
+
 	csr, err := depot.GetCertificateSigningRequest(d, formattedReqName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Get certificate request error:", err)
@@ -90,19 +103,6 @@ func newSignAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Get CA key error:", err)
 			os.Exit(1)
 		}
-	}
-
-	expires := c.String("expires")
-	if years := c.Int("years"); years != 0 {
-		expires = fmt.Sprintf("%s %s years", expires, years)
-	}
-
-	// Expiry parsing is a naive regex implementation
-	// Token based parsing would provide better feedback but
-	expiresTime, err := parseExpiry(expires)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Invalid expiry format")
-		os.Exit(1)
 	}
 
 	var crtOut *pkix.Certificate

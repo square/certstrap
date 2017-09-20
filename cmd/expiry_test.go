@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -73,16 +74,31 @@ func TestParseExpiryWithMixed(t *testing.T) {
 }
 
 func TestParseInvalidExpiry(t *testing.T) {
-	t1, err1 := parseExpiry("53257284647843897")
-	t2, err2 := parseExpiry("5 y")
-	expectedt1, _ := time.Parse(dateFormat, "2017-01-01")
-	expectedt2, _ := time.Parse(dateFormat, "2017-01-01")
-
-	if t1 != expectedt1 && err1 != nil && fmt.Sprintf("%s", err1) == "Invalid expiry format" {
-		t.Fatalf("Parsing invalid expiry t1 did not produce an error as expected")
+	errorTime := onlyTime(time.Parse(dateFormat, "2017-01-01"))
+	cases := []struct {
+		Input       string
+		Expected    time.Time
+		ExpectedErr string
+	}{
+		{"53257284647843897", errorTime, "invalid or empty format"},
+		{"5y", errorTime, "invalid or empty format"},
+		{"53257284647843897 days", errorTime, ".*value out of range"},
+		{"2147483647 hours", errorTime, ".*hour unit too large.*"},
+		{"2147483647 days", errorTime, ".*proposed date too far in to the future.*"},
 	}
 
-	if t2 != expectedt2 && err2 != nil && fmt.Sprintf("%s", err2) == "Invalid expiry format" {
-		t.Fatalf("Parsing invalid expiry t2 did not produce an error as expected")
+	for _, c := range cases {
+		result, err := parseExpiry(c.Input)
+		if result != c.Expected {
+			t.Fatalf("Invalid expiry '%s' did not have expected value (wanted: %s, got: %s)", c.Input, c.Expected, result)
+		}
+
+		if match, _ := regexp.MatchString(c.ExpectedErr, fmt.Sprintf("%s", err)); !match {
+			t.Fatalf("Invalid expiry '%s' did not have expected error (wanted: %s, got: %s)", c.Input, c.ExpectedErr, err)
+		}
 	}
+}
+
+func onlyTime(a time.Time, b error) time.Time {
+	return a
 }

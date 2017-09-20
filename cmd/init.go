@@ -38,7 +38,7 @@ func NewInitCommand() cli.Command {
 			cli.StringFlag{"passphrase", "", "Passphrase to encrypt private-key PEM block", ""},
 			cli.IntFlag{"key-bits", 4096, "Bit size of RSA keypair to generate", ""},
 			cli.IntFlag{"years", 0, "DEPRECATED; Use --expires instead", ""},
-			cli.StringFlag{"expires", "10 years", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
+			cli.StringFlag{"expires", "18 months", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
 			cli.StringFlag{"organization, o", "", "CA Certificate organization", ""},
 			cli.StringFlag{"organizational-unit, ou", "", "CA Certificate organizational unit", ""},
 			cli.StringFlag{"country, c", "", "CA Certificate country", ""},
@@ -66,8 +66,21 @@ func initAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	var passphrase []byte
 	var err error
+	expires := c.String("expires")
+	if years := c.Int("years"); years != 0 {
+		expires = fmt.Sprintf("%s %s years", expires, years)
+	}
+
+	// Expiry parsing is a naive regex implementation
+	// Token based parsing would provide better feedback but
+	expiresTime, err := parseExpiry(expires)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid expiry: %s\n", err)
+		os.Exit(1)
+	}
+
+	var passphrase []byte
 	if c.IsSet("passphrase") {
 		passphrase = []byte(c.String("passphrase"))
 	} else {
@@ -98,19 +111,6 @@ func initAction(c *cli.Context) {
 		} else {
 			fmt.Printf("Created %s/%s.key\n", depotDir, formattedName)
 		}
-	}
-
-	expires := c.String("expires")
-	if years := c.Int("years"); years != 0 {
-		expires = fmt.Sprintf("%s %s years", expires, years)
-	}
-
-	// Expiry parsing is a naive regex implementation
-	// Token based parsing would provide better feedback but
-	expiresTime, err := parseExpiry(expires)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Invalid expiry format")
-		os.Exit(1)
 	}
 
 	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"))
