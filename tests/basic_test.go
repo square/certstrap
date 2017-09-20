@@ -23,14 +23,18 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"runtime"
+	"fmt"
+	"os"
 )
 
 const (
-	binPath    = "../bin/certstrap"
-	depotDir   = ".certstrap-test"
-	hostname   = "host1"
-	passphrase = "123456"
+	depotDir         = ".certstrap-test"
+	hostname         = "host1"
+	passphrase       = "123456"
 )
+
+var binPath = fmt.Sprintf("../bin/certstrap-%s-%s-amd64", os.Getenv("BUILD_TAG"), runtime.GOOS)
 
 func run(command string, args ...string) (string, string, error) {
 	var stdoutBytes, stderrBytes bytes.Buffer
