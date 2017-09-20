@@ -4,6 +4,7 @@
 
 ORG_PATH="github.com/square"
 REPO_PATH="${ORG_PATH}/certstrap"
+BUILD_TAG="${TRAVIS_TAG:-$(git describe --all | sed -e's/.*\///g')}"
 
 export GOPATH=${PWD}/gopath
 
@@ -13,4 +14,6 @@ ln -s ${PWD} $GOPATH/src/${REPO_PATH}
 
 eval $(go env)
 
-go build -o bin/certstrap ${REPO_PATH}
+GOARCH=amd64 GOOS=linux go build -o bin/certstrap-${BUILD_TAG}-linux-amd64 ${REPO_PATH}
+GOARCH=amd64 GOOS=darwin go build -o bin/certstrap-${BUILD_TAG}-darwin-amd64 ${REPO_PATH}
+GOARCH=amd64 GOOS=windows go build -o bin/certstrap-${BUILD_TAG}-windows-amd64 ${REPO_PATH}

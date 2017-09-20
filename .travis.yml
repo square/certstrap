@@ -1,21 +1,24 @@
 language: go
-
 sudo: false
-
 go:
 - 1.5.x
-- 1.6.x
-- 1.7.x
-- 1.8.x
 - 1.9.x
-- tip
-
+deploy:
+  provider: releases
+  api_key:
+    secure: 'kewugKeaEgDvNMaapSbhMTgWXO1tje4sbyF8D77lbceOviTfKZkDKuuwVSwTU1NTKuHk5DnC00Rrfy7d4HP1xPT94P4AnI6oEjUvQvi43U8Ub/YGbrwTAZpqUyZJWwmkHaEikeFRIRuyTnHztM8/IQaEQyOvxtu2NOFnMVCpagQ='
+  file:
+  - bin/certstrap-${TRAVIS_TAG}-linux-amd64
+  - bin/certstrap-${TRAVIS_TAG}-darwin-amd64
+  - bin/certstrap-${TRAVIS_TAG}-windows-amd64
+  skip_cleanup: true
+  on:
+    tags: true
+    go: 1.9
 install:
 - go get -d -t -v ./...
 - go get github.com/tools/godep
-
 before_script:
 - ./build
-
 script:
 - ./test
