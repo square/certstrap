@@ -35,7 +35,8 @@ func NewSignCommand() cli.Command {
 		Description: "Sign certificate request with CA, and generate certificate for the host.",
 		Flags: []cli.Flag{
 			cli.StringFlag{"passphrase", "", "Passphrase to decrypt private-key PEM block of CA", ""},
-			cli.IntFlag{"years", 2, "How long until the certificate expires", ""},
+			cli.IntFlag{"years", 0, "DEPRECATED; Use --expires instead", ""},
+			cli.StringFlag{"expires", "2 years", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
 			cli.StringFlag{"CA", "", "CA to sign cert", ""},
 			cli.BoolFlag{"stdout", "Print certificate to stdout in addition to saving file", ""},
 			cli.BoolFlag{"intermediate", "Generated certificate should be a intermediate", ""},
@@ -49,11 +50,25 @@ func newSignAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "One host name must be provided.")
 		os.Exit(1)
 	}
+
 	formattedReqName := strings.Replace(c.Args()[0], " ", "_", -1)
 	formattedCAName := strings.Replace(c.String("CA"), " ", "_", -1)
 
 	if depot.CheckCertificate(d, formattedReqName) {
 		fmt.Fprintln(os.Stderr, "Certificate has existed!")
+		os.Exit(1)
+	}
+
+	expires := c.String("expires")
+	if years := c.Int("years"); years != 0 {
+		expires = fmt.Sprintf("%s %s years", expires, years)
+	}
+
+	// Expiry parsing is a naive regex implementation
+	// Token based parsing would provide better feedback but
+	expiresTime, err := parseExpiry(expires)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid expiry: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -93,9 +108,9 @@ func newSignAction(c *cli.Context) {
 	var crtOut *pkix.Certificate
 	if c.Bool("intermediate") {
 		fmt.Fprintf(os.Stderr, "Building intermediate")
-		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, c.Int("years"))
+		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
 	} else {
-		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, c.Int("years"))
+		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime)
 	}
 
 	if err != nil {

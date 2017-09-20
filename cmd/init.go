@@ -37,7 +37,8 @@ func NewInitCommand() cli.Command {
 		Flags: []cli.Flag{
 			cli.StringFlag{"passphrase", "", "Passphrase to encrypt private-key PEM block", ""},
 			cli.IntFlag{"key-bits", 4096, "Bit size of RSA keypair to generate", ""},
-			cli.IntFlag{"years", 10, "How long until the CA certificate expires", ""},
+			cli.IntFlag{"years", 0, "DEPRECATED; Use --expires instead", ""},
+			cli.StringFlag{"expires", "18 months", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
 			cli.StringFlag{"organization, o", "", "CA Certificate organization", ""},
 			cli.StringFlag{"organizational-unit, ou", "", "CA Certificate organizational unit", ""},
 			cli.StringFlag{"country, c", "", "CA Certificate country", ""},
@@ -65,8 +66,21 @@ func initAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	var passphrase []byte
 	var err error
+	expires := c.String("expires")
+	if years := c.Int("years"); years != 0 {
+		expires = fmt.Sprintf("%s %s years", expires, years)
+	}
+
+	// Expiry parsing is a naive regex implementation
+	// Token based parsing would provide better feedback but
+	expiresTime, err := parseExpiry(expires)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid expiry: %s\n", err)
+		os.Exit(1)
+	}
+
+	var passphrase []byte
 	if c.IsSet("passphrase") {
 		passphrase = []byte(c.String("passphrase"))
 	} else {
@@ -99,7 +113,7 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), c.Int("years"), c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"))
+	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
@@ -130,7 +144,7 @@ func initAction(c *cli.Context) {
 	}
 
 	// Create an empty CRL, this is useful for Java apps which mandate a CRL.
-	crl, err := pkix.CreateCertificateRevocationList(key, crt, c.Int("years"))
+	crl, err := pkix.CreateCertificateRevocationList(key, crt, expiresTime)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create CRL error:", err)
 		os.Exit(1)

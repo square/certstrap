@@ -77,13 +77,13 @@ var (
 
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
-func CreateCertificateAuthority(key *Key, organizationalUnit string, years int, organization string, country string, province string, locality string, commonName string) (*Certificate, error) {
+func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string) (*Certificate, error) {
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
 	if err != nil {
 		return nil, err
 	}
 	authTemplate.SubjectKeyId = subjectKeyID
-	authTemplate.NotAfter = time.Now().AddDate(years, 0, 0).UTC()
+	authTemplate.NotAfter = expiry
 	if len(country) > 0 {
 		authTemplate.Subject.Country = []string{country}
 	}
@@ -113,7 +113,7 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, years int, 
 
 // CreateIntermediateCertificateAuthority creates an intermediate
 // CA certificate signed by the given authority.
-func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, years int) (*Certificate, error) {
+func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -130,7 +130,6 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 	authTemplate.RawSubject = rawCsr.RawSubject
 
 	caExpiry := time.Now().Add(crtAuth.GetExpirationDuration())
-	proposedExpiry := time.Now().AddDate(years, 0, 0).UTC()
 	// ensure cert doesn't expire after issuer
 	if caExpiry.Before(proposedExpiry) {
 		authTemplate.NotAfter = caExpiry
