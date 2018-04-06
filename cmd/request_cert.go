@@ -46,6 +46,7 @@ func NewCertRequestCommand() cli.Command {
 			cli.StringFlag{"ip", "", "IP address entries for subject alt name (comma separated)", ""},
 			cli.StringFlag{"domain", "", "DNS entries for subject alt name (comma separated)", ""},
 			cli.StringFlag{"key", "", "Path to private key PEM file.  If blank, will generate new keypair.", ""},
+			cli.StringFlag{"out-name, on", "", "Name for output files without path and extension. If blank, Common name will be used.", ""},
 			cli.BoolFlag{"stdout", "Print signing request to stdout in addition to saving file", ""},
 		},
 		Action: newCertAction,
@@ -82,6 +83,9 @@ func newCertAction(c *cli.Context) {
 	}
 
 	formattedName := strings.Replace(name, " ", "_", -1)
+	if c.IsSet("out-name") {
+		formattedName = strings.Replace(c.String("out-name"), " ", "_", -1)
+	}
 
 	if depot.CheckCertificateSigningRequest(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
 		fmt.Fprintln(os.Stderr, "Certificate request has existed!")
