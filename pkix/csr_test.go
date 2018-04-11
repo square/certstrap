@@ -37,6 +37,18 @@ hvcNAQEFBQADgYEAd6zCGoQHwqwcCtETtmEnlry1kienYt8WgMLU89HcJpSTUR7e
 FlV5Hq5RkPqaigS6EmWl1zQrSZ4330jpt8y9J5rHGbsNwGlR+0xr34xqAYg=
 -----END CERTIFICATE REQUEST-----
 `
+	oldStyleCsrPEM = `-----BEGIN NEW CERTIFICATE REQUEST-----
+MIIBqDCCARECAQAwaDELMAkGA1UEBhMCVVMxDzANBgNVBAcTBmZpZWxkMjESMBAG
+A1UEChMJY2VydHN0cmFwMQ8wDQYDVQQLEwZmb29iYXIxEjAQBgNVBAMTCTEyNy4w
+LjAuMTEPMA0GA1UECBMGZmllbGQ2MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKB
+gQDPzdA4f6O1X81IiCIjoPfne4oYXcjl/vcC1le7G8Hk3r9AlyPG1KgZvh4YHOZo
+Qs9bJ9YKOEHsHIxrV7Mk7i4knlr9WNIRJydCpH+/DTv5ZbqlDbpi5K/DYS8ly5Zh
+DN6jyZ83+bwmpRUePZr/rXGzhGtLN8IKVww6UOi+yUH+iQIDAQABoAAwDQYJKoZI
+hvcNAQEFBQADgYEAd6zCGoQHwqwcCtETtmEnlry1kienYt8WgMLU89HcJpSTUR7e
+1VfXfkS9MO5SUp9apPq0LIgT3ZcZwhFjgYmM9BTDUeMKT21FLnQbJ3C7xTTtSHQ6
+FlV5Hq5RkPqaigS6EmWl1zQrSZ4330jpt8y9J5rHGbsNwGlR+0xr34xqAYg=
+-----END NEW CERTIFICATE REQUEST-----
+`
 	wrongCSRPEM = `-----BEGIN WRONG CERTIFICATE REQUEST-----
 MIIBgTCB7QIBADBGMQwwCgYDVQQGEwNVU0ExEDAOBgNVBAoTB2V0Y2QtY2ExEDAO
 BgNVBAsTB3NlcnZlcjIxEjAQBgNVBAMTCTEyNy4wLjAuMTCBnTALBgkqhkiG9w0B
@@ -91,6 +103,25 @@ func TestCreateCertificateSigningRequest(t *testing.T) {
 
 func TestCertificateSigningRequest(t *testing.T) {
 	csr, err := NewCertificateSigningRequestFromPEM([]byte(csrPEM))
+	if err != nil {
+		t.Fatal("Failed parsing certificate request from PEM:", err)
+	}
+
+	if err = csr.CheckSignature(); err != nil {
+		t.Fatal("Failed checking signature:", err)
+	}
+
+	pemBytes, err := csr.Export()
+	if err != nil {
+		t.Fatal("Failed exporting PEM-format bytes:", err)
+	}
+	if bytes.Compare(pemBytes, []byte(csrPEM)) != 0 {
+		t.Fatal("Failed exporting the same PEM-format bytes")
+	}
+}
+
+func TestOldStyleCertificateSigningRequest(t *testing.T) {
+	csr, err := NewCertificateSigningRequestFromPEM([]byte(oldStyleCsrPEM))
 	if err != nil {
 		t.Fatal("Failed parsing certificate request from PEM:", err)
 	}

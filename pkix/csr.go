@@ -35,7 +35,8 @@ import (
 )
 
 const (
-	csrPEMBlockType = "CERTIFICATE REQUEST"
+	csrPEMBlockType    = "CERTIFICATE REQUEST"
+	oldCsrPEMBlockType = "NEW CERTIFICATE REQUEST"
 )
 
 var (
@@ -121,7 +122,7 @@ func NewCertificateSigningRequestFromPEM(data []byte) (*CertificateSigningReques
 	if pemBlock == nil {
 		return nil, errors.New("cannot find the next PEM formatted block")
 	}
-	if pemBlock.Type != csrPEMBlockType || len(pemBlock.Headers) != 0 {
+	if (pemBlock.Type != csrPEMBlockType && pemBlock.Type != oldCsrPEMBlockType) || len(pemBlock.Headers) != 0 {
 		return nil, errors.New("unmatched type or headers")
 	}
 	return &CertificateSigningRequest{derBytes: pemBlock.Bytes}, nil
