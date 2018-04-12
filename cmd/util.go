@@ -1,4 +1,5 @@
 /*-
+ * Copyright (c) 2018 Marco Stolze (alias mcpride)
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
  *
@@ -23,9 +24,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/howeyc/gopass"
-	"github.com/square/certstrap/depot"
+	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/howeyc/gopass"
+	"github.com/mcpride/certstrap/depot"
 )
 
 var (

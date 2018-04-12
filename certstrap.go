@@ -1,4 +1,5 @@
 /*-
+ * Copyright (c) 2018 Marco Stolze (alias mcpride)
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
  *
@@ -20,9 +21,9 @@ package main
 import (
 	"os"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/square/certstrap/cmd"
-	"github.com/square/certstrap/depot"
+	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/mcpride/certstrap/cmd"
+	"github.com/mcpride/certstrap/depot"
 )
 
 func main() {
@@ -38,12 +39,13 @@ func main() {
 			EnvVar: "",
 		},
 	}
-	app.Author = "Square Inc., CoreOS"
+	app.Author = "M. Stolze, Square Inc., CoreOS"
 	app.Email = ""
 	app.Commands = []cli.Command{
 		cmd.NewInitCommand(),
 		cmd.NewCertRequestCommand(),
 		cmd.NewSignCommand(),
+		cmd.ExportPfxCommand(),
 	}
 	app.Before = func(c *cli.Context) error {
 		cmd.InitDepot(c.String("depot-path"))

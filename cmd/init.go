@@ -1,4 +1,5 @@
 /*-
+ * Copyright (c) 2018 Marco Stolze (alias mcpride)
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
  *
@@ -23,9 +24,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/square/certstrap/depot"
-	"github.com/square/certstrap/pkix"
+	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/mcpride/certstrap/depot"
+	"github.com/mcpride/certstrap/pkix"
 )
 
 // NewInitCommand sets up an "init" command to initialize a new CA

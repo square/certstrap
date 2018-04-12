@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/square/certstrap",
+	"ImportPath": "github.com/mcpride/certstrap",
 	"GoVersion": "go1.3.3",
 	"Packages": [
 		"./..."
@@ -17,6 +17,10 @@
 		{
 			"ImportPath": "golang.org/x/crypto/ssh/terminal",
 			"Rev": "bfc286917c5fcb7420d7e3092b50bbfd31b38a98"
+		},
+		{
+			"ImportPath": "github.com/SSLMate/go-pkcs12",
+			"Rev": "2291e8f0f237e77e89ce233be7653ecca8cf391a"
 		}
 	]
 }

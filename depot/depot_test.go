@@ -1,4 +1,5 @@
 /*-
+ * Copyright (c) 2018 Marco Stolze (alias mcpride)
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
  *

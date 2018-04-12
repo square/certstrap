@@ -1,4 +1,5 @@
 #!/bin/bash -e
+# Copyright (c) 2018 Marco Stolze (alias mcpride)
 # Copyright (C) 2015 Square, Inc.
 # Copyright (C) 2014 CoreOS
 

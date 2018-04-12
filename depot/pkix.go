@@ -1,4 +1,5 @@
 /*-
+ * Copyright (c) 2018 Marco Stolze (alias mcpride)
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
  *
@@ -18,9 +19,12 @@
 package depot
 
 import (
+	"crypto/rand"
+	"crypto/x509"
 	"strings"
 
-	"github.com/square/certstrap/pkix"
+	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/SSLMate/go-pkcs12"
+	"github.com/mcpride/certstrap/pkix"
 )
 
 const (
@@ -28,6 +32,7 @@ const (
 	csrSuffix     = ".csr"
 	privKeySuffix = ".key"
 	crlSuffix     = ".crl"
+	pfxSuffix     = ".pfx"
 )
 
 const (
@@ -53,6 +58,11 @@ func CsrTag(prefix string) *Tag {
 // CrlTag returns a tag corresponding to a certificate revocation list
 func CrlTag(prefix string) *Tag {
 	return &Tag{prefix + crlSuffix, leafPerm}
+}
+
+// PfxTag returns a tag corresponding to a personal information exchange
+func PfxTag(prefix string) *Tag {
+	return &Tag{prefix + pfxSuffix, leafPerm}
 }
 
 // GetNameFromCrtTag returns the host name from a certificate file tag
@@ -104,6 +114,11 @@ func PutCertificateSigningRequest(d Depot, name string, csr *pkix.CertificateSig
 // CheckCertificateSigningRequest checks the depot for existence of a certificate signing request file for a given host name
 func CheckCertificateSigningRequest(d Depot, name string) bool {
 	return d.Check(CsrTag(name))
+}
+
+// CheckPersonalInformationExchange checks the depot for existence of a pfx file for a given name
+func CheckPersonalInformationExchange(d Depot, name string) bool {
+	return d.Check(PfxTag(name))
 }
 
 // GetCertificateSigningRequest retrieves a certificate signing request file for a given host name from the depot
@@ -168,4 +183,25 @@ func PutCertificateRevocationList(d Depot, name string, crl *pkix.CertificateRev
 		return err
 	}
 	return d.Put(CrlTag(name), b)
+}
+
+// PutPfx creates a Personal Information Exchange certificate file for a given name in the depot
+func PutPersonalInformationExchange(d Depot, name string, crt *pkix.Certificate, key *pkix.Key, caCrts []*pkix.Certificate, passphrase []byte) error {
+	c, err := crt.GetRawCertificate()
+	if err != nil {
+		return err
+	}
+	chain := []*x509.Certificate{}
+	for i := range caCrts {
+		cc, err := caCrts[i].GetRawCertificate()
+		if err != nil {
+			return err
+		}
+		chain = append(chain, cc)
+	}
+	b, err := pkcs12.Encode(rand.Reader, key.Private, c, chain, string(passphrase))
+	if err != nil {
+		return err
+	}
+	return d.Put(PfxTag(name), b)
 }
