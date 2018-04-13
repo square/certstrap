@@ -23,7 +23,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 	"github.com/mcpride/certstrap/depot"
 	"github.com/mcpride/certstrap/pkix"
 )

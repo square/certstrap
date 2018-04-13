@@ -23,7 +23,7 @@ import (
 	"crypto/x509"
 	"strings"
 
-	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/SSLMate/go-pkcs12"
+	"github.com/mcpride/certstrap/go-pkcs12"
 	"github.com/mcpride/certstrap/pkix"
 )
 

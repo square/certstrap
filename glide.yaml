@@ -1,0 +1,10 @@
+package: github.com/mcpride/certstrap
+import:
+- package: github.com/codegangsta/cli
+  version: bf4a526f48af7badd25d2cb02d587e1b01be3b50
+- package: github.com/howeyc/gopass
+  version: 2c70fa70727c953c51695f800f25d6b44abb368e
+- package: golang.org/x/crypto
+  version: bfc286917c5fcb7420d7e3092b50bbfd31b38a98
+  subpackages:
+  - ssh/terminal

@@ -21,7 +21,7 @@ package main
 import (
 	"os"
 
-	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 	"github.com/mcpride/certstrap/cmd"
 	"github.com/mcpride/certstrap/depot"
 )

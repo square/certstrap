@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/mcpride/certstrap/Godeps/_workspace/src/github.com/howeyc/gopass"
+	"github.com/codegangsta/cli"
+	"github.com/howeyc/gopass"
 	"github.com/mcpride/certstrap/depot"
 )
 
