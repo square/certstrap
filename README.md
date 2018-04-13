@@ -84,7 +84,7 @@ Created out/Alice.crt from out/Alice.csr signed by out/CertAuth.key
 If you'd like to convert your certificate and key to PKCS12 format, simply run:
 
 ```
-$ certstrap --export-pfx Alice --chain "CertAuth"
+$ certstrap export-pfx Alice --chain "CertAuth"
 ```
 
 ### Retrieving Files

@@ -89,9 +89,15 @@ func exportPfxAction(c *cli.Context) {
 		}
 	}
 
-	err = depot.PutPersonalInformationExchange(d, formattedName, cert, key, caCrts, passphrase)
+	pfxBytes, err := depot.PutPersonalInformationExchange(d, formattedName, cert, key, caCrts, passphrase)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Export certificate chain to personal information exchange format failed:", err)
 		os.Exit(1)
+	} else {
+		fmt.Printf("Created %s/%s.pfx from %s/%s.crt and %s/%s.key\n", depotDir, formattedName, depotDir, formattedName, depotDir, formattedName)
+	}
+
+	if c.Bool("stdout") {
+		fmt.Printf(string(pfxBytes[:]))
 	}
 }

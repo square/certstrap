@@ -185,23 +185,23 @@ func PutCertificateRevocationList(d Depot, name string, crl *pkix.CertificateRev
 	return d.Put(CrlTag(name), b)
 }
 
-// PutPfx creates a Personal Information Exchange certificate file for a given name in the depot
-func PutPersonalInformationExchange(d Depot, name string, crt *pkix.Certificate, key *pkix.Key, caCrts []*pkix.Certificate, passphrase []byte) error {
+// PutPersonalInformationExchange creates a Personal Information Exchange certificate file for a given name in the depot
+func PutPersonalInformationExchange(d Depot, name string, crt *pkix.Certificate, key *pkix.Key, caCrts []*pkix.Certificate, passphrase []byte) ([]byte, error) {
 	c, err := crt.GetRawCertificate()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	chain := []*x509.Certificate{}
 	for i := range caCrts {
 		cc, err := caCrts[i].GetRawCertificate()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		chain = append(chain, cc)
 	}
 	b, err := pkcs12.Encode(rand.Reader, key.Private, c, chain, string(passphrase))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return d.Put(PfxTag(name), b)
+	return b, d.Put(PfxTag(name), b)
 }
