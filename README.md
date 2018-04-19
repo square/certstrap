@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mcpride/certstrap.svg?branch=master)](https://travis-ci.org/mcpride/certstrap)
+[![Build Status](https://travis-ci.org/mcpride/certstrap.svg?branch=master)](https://travis-ci.org/mcpride/certstrap) [![license](http://img.shields.io/badge/license-apache_2.0-red.svg?style=flat)](https://raw.githubusercontent.com/mcpride/certstrap/master/LICENSE)
 
 # certstrap
 
