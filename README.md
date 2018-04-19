@@ -31,7 +31,7 @@ $ ./build
 ```
 
 This will generate a binary called `./bin/certstrap`
-Note that certstrap depends on godep, cli, and terminal (godep should
+Note that certstrap depends on glide, cli, and terminal (glide should
 handle the latter two for you).
 
 ### Initialize a new certificate authority:
