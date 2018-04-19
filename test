@@ -16,5 +16,4 @@ echo
 for mod in $PKG; do
   mod_path=$REPO_PATH/$mod
   go test -i $mod_path
-  godep go test -v $mod_path
 done
