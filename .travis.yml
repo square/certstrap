@@ -5,8 +5,6 @@ go:
 - 1.9.x
 deploy:
   provider: releases
-  api_key:
-    secure: 'kewugKeaEgDvNMaapSbhMTgWXO1tje4sbyF8D77lbceOviTfKZkDKuuwVSwTU1NTKuHk5DnC00Rrfy7d4HP1xPT94P4AnI6oEjUvQvi43U8Ub/YGbrwTAZpqUyZJWwmkHaEikeFRIRuyTnHztM8/IQaEQyOvxtu2NOFnMVCpagQ='
   file:
   - bin/certstrap-${TRAVIS_TAG}-linux-amd64
   - bin/certstrap-${TRAVIS_TAG}-darwin-amd64
@@ -17,7 +15,7 @@ deploy:
     go: 1.9
 install:
 - go get -d -t -v ./...
-- go get github.com/tools/godep
+- go get github.com/Masterminds/glide
 before_script:
 - ./build
 script:
