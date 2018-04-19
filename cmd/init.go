@@ -1,4 +1,5 @@
 /*-
+ * Copyright (c) 2018 Marco Stolze (alias mcpride)
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
  *
@@ -23,9 +24,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/square/certstrap/depot"
-	"github.com/square/certstrap/pkix"
+	"github.com/codegangsta/cli"
+	"github.com/mcpride/certstrap/depot"
+	"github.com/mcpride/certstrap/pkix"
 )
 
 // NewInitCommand sets up an "init" command to initialize a new CA
@@ -46,6 +47,7 @@ func NewInitCommand() cli.Command {
 			cli.StringFlag{"province, st", "", "CA state/province", ""},
 			cli.StringFlag{"locality, l", "", "CA locality", ""},
 			cli.StringFlag{"key", "", "Path to private key PEM file.  If blank, will generate new keypair.", ""},
+			cli.StringFlag{"out-name, on", "", "Name for output files without path and extension. If blank, CA common name will be used.", ""},
 			cli.BoolFlag{"stdout", "Print CA certificate to stdout in addition to saving file", ""},
 		},
 		Action: initAction,
@@ -60,6 +62,9 @@ func initAction(c *cli.Context) {
 	}
 
 	formattedName := strings.Replace(c.String("common-name"), " ", "_", -1)
+	if c.IsSet("out-name") {
+		formattedName = strings.Replace(c.String("out-name"), " ", "_", -1)
+	}
 
 	if depot.CheckCertificate(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
 		fmt.Fprintln(os.Stderr, "CA with specified name already exists!")

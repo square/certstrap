@@ -1,8 +1,9 @@
 #!/bin/bash -e
+# Copyright (c) 2018 Marco Stolze (alias mcpride)
 # Copyright (C) 2015 Square, Inc.
 # Copyright (C) 2014 CoreOS
 
-ORG_PATH="github.com/square"
+ORG_PATH="github.com/mcpride"
 REPO_PATH="${ORG_PATH}/certstrap"
 BUILD_TAG="${TRAVIS_TAG:-$(git describe --all | sed -e's/.*\///g')}"
 
