@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mcpride/certstrap.svg?branch=master)](https://travis-ci.org/mcpride/certstrap)
+
 # certstrap
 
 A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure.  Adapted from etcd-ca and [square certstrap](https://github.com/square/certstrap).
