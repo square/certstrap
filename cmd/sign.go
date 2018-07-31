@@ -61,7 +61,7 @@ func newSignAction(c *cli.Context) {
 
 	expires := c.String("expires")
 	if years := c.Int("years"); years != 0 {
-		expires = fmt.Sprintf("%s %s years", expires, years)
+		expires = fmt.Sprintf("%s %d years", expires, years)
 	}
 
 	// Expiry parsing is a naive regex implementation
