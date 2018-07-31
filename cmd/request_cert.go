@@ -26,6 +26,10 @@ import (
 	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
+
+	"strconv"
+	"encoding/asn1"
+	x509pkix "crypto/x509/pkix"
 )
 
 // NewCertRequestCommand sets up a "request-cert" command to create a request for a new certificate (CSR)
@@ -47,6 +51,8 @@ func NewCertRequestCommand() cli.Command {
 			cli.StringFlag{"domain", "", "DNS entries for subject alt name (comma separated)", ""},
 			cli.StringFlag{"key", "", "Path to private key PEM file.  If blank, will generate new keypair.", ""},
 			cli.BoolFlag{"stdout", "Print signing request to stdout in addition to saving file", ""},
+
+			cli.StringFlag{"eku", "", "Comma-separated list of EKU OIDs. If the anyExtendedKeyUsage OID (2.5.29.37.0) is not in this list, the extension will be marked critical.", ""},
 		},
 		Action: newCertAction,
 	}
@@ -121,7 +127,58 @@ func newCertAction(c *cli.Context) {
 		}
 	}
 
-	csr, err := pkix.CreateCertificateSigningRequest(key, c.String("organizational-unit"), ips, domains, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), name)
+	var ekuExtension *x509pkix.Extension
+	if c.IsSet("eku") {
+		var anyEKUOid asn1.ObjectIdentifier = asn1.ObjectIdentifier{2, 5, 29, 37, 0}
+		var sawAnyEKUOid bool = false
+		var oids []asn1.ObjectIdentifier
+		for _, oidString := range strings.Split(c.String("eku"), ",") {
+			var thisOid asn1.ObjectIdentifier
+			var isAnyEKUOid bool = true
+			for i, oidComponent := range strings.Split(oidString, ".") {
+				var thisOidComponent int
+				if val, err := strconv.Atoi(oidComponent); err == nil {
+					thisOidComponent = val
+				} else {
+					fmt.Fprintln(os.Stderr, "OID component parsing error:", err)
+					os.Exit(1)
+				}
+				thisOid = append(thisOid, thisOidComponent)
+				if i < len(anyEKUOid) {
+					isAnyEKUOid = isAnyEKUOid && (thisOidComponent == anyEKUOid[i])
+				} else {
+					isAnyEKUOid = false
+				}
+			}
+			if len(thisOid) > 0 {
+				oids = append(oids, thisOid)
+				sawAnyEKUOid = sawAnyEKUOid || isAnyEKUOid
+			}
+		}
+		if len(oids) > 0 {
+			if val, err := asn1.Marshal(oids); err == nil {
+				ekuExtension = &x509pkix.Extension{
+					Id: asn1.ObjectIdentifier{2, 5, 29, 37},
+					Critical: !sawAnyEKUOid,
+					Value: val,
+				}
+			} else {
+				fmt.Fprintln(os.Stderr, "Error marshalling EKU extension:", err)
+				os.Exit(1)
+			}
+		}
+	}
+
+	var extensionsList []x509pkix.Extension
+	var extensions *[]x509pkix.Extension = nil
+	if ekuExtension != nil {
+		extensionsList = append(extensionsList, *ekuExtension)
+	}
+	if len(extensionsList) > 0 {
+		extensions = &extensionsList
+	}
+
+	csr, err := pkix.CreateCertificateSigningRequest(key, c.String("organizational-unit"), ips, domains, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), name, extensions)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate request error:", err)
 		os.Exit(1)
