@@ -169,3 +169,12 @@ func PutCertificateRevocationList(d Depot, name string, crl *pkix.CertificateRev
 	}
 	return d.Put(CrlTag(name), b)
 }
+
+//GetCertificateRevocationList gets a CRL file for a given name and ca in the depot.
+func GetCertificateRevocationList(d Depot, name string) (*pkix.CertificateRevocationList, error) {
+	b, err := d.Get(CrlTag(name))
+	if err != nil {
+		return nil, err
+	}
+	return pkix.NewCertificateRevocationListFromPEM(b)
+}
