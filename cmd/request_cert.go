@@ -135,7 +135,7 @@ func newCertAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Print certificate request error:", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(csrBytes[:]))
+			fmt.Printf(string(csrBytes))
 		}
 	}
 
