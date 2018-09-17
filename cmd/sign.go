@@ -126,7 +126,7 @@ func newSignAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Print certificate error:", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(crtBytes[:]))
+			fmt.Printf(string(crtBytes))
 		}
 	}
 

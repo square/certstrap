@@ -126,7 +126,7 @@ func initAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Print CA certificate error:", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(crtBytes[:]))
+			fmt.Printf(string(crtBytes))
 		}
 	}
 
