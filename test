@@ -14,6 +14,5 @@ export BUILD_TAG="${TRAVIS_TAG:-$(git describe --all | sed -e's/.*\///g')}"
 echo
 for mod in $PKG; do
   mod_path=$REPO_PATH/$mod
-  go test -i $mod_path
-  godep go test -v $mod_path
+  go test -v $mod_path
 done
