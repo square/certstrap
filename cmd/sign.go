@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
 )
