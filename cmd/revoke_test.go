@@ -101,7 +101,7 @@ func setupCN(t *testing.T, dt depot.Depot) {
 		t.Fatalf("could not put private key: %v", err)
 	}
 
-	csr, err := pkix.CreateCertificateSigningRequest(key, cnName, nil, []string{"example.com"}, "", "", "", "", cnName)
+	csr, err := pkix.CreateCertificateSigningRequest(key, cnName, nil, []string{"example.com"}, nil, "", "", "", "", cnName)
 	if err != nil {
 		t.Fatalf("could not create csr: %v", err)
 	}

@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"net/url"
 	"strings"
 )
 
@@ -69,8 +70,26 @@ func ParseAndValidateIPs(ipList string) (res []net.IP, err error) {
 	return
 }
 
+// ParseAndValidateURIs parses a comma-delimited list of URIs into an array of url.URLs
+func ParseAndValidateURIs(uriList string) (res []*url.URL, err error) {
+	if len(uriList) > 0 {
+		uris := strings.Split(uriList, ",")
+		for _, uri := range uris {
+			parsedURI, err := url.Parse(uri)
+			if err != nil {
+				parsedURI = nil
+			}
+			if parsedURI == nil {
+				return nil, fmt.Errorf("Invalid URI: %s", uri)
+			}
+			res = append(res, parsedURI)
+		}
+	}
+	return
+}
+
 // CreateCertificateSigningRequest sets up a request to create a csr file with the given parameters
-func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, organization string, country string, province string, locality string, commonName string) (*CertificateSigningRequest, error) {
+func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, uriList []*url.URL, organization string, country string, province string, locality string, commonName string) (*CertificateSigningRequest, error) {
 
 	csrPkixName.CommonName = commonName
 
@@ -93,6 +112,7 @@ func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList
 		Subject:     csrPkixName,
 		IPAddresses: ipList,
 		DNSNames:    domainList,
+		URIs:        uriList,
 	}
 
 	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key.Private)
