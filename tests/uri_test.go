@@ -49,4 +49,21 @@ func TestURI(t *testing.T) {
 
 	os.RemoveAll(depotDir)
 	defer os.RemoveAll(depotDir)
+
+	// Disallow URIs as "/"
+	stdout, stderr, err = run(binPath, "request-cert", "--passphrase", passphrase, "--common-name", "CA", "--uri", "/")
+	if !strings.Contains(stderr, "Invalid URI: /") {
+		t.Fatalf("Received unexpected : %v, %v", stderr, err)
+	}
+
+	os.RemoveAll(depotDir)
+	defer os.RemoveAll(depotDir)
+
+	// Disallow URIs as "/test"
+	stdout, stderr, err = run(binPath, "request-cert", "--passphrase", passphrase, "--common-name", "CA", "--uri", "/test")
+	if !strings.Contains(stderr, "Invalid URI: /test") {
+		t.Fatalf("Received unexpected : %v, %v", stderr, err)
+	}
+	os.RemoveAll(depotDir)
+	defer os.RemoveAll(depotDir)
 }
