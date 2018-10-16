@@ -82,6 +82,9 @@ func ParseAndValidateURIs(uriList string) (res []*url.URL, err error) {
 			if parsedURI == nil {
 				return nil, fmt.Errorf("Invalid URI: %s", uri)
 			}
+			if !parsedURI.IsAbs() {
+				return nil, fmt.Errorf("Invalid URI: %s", uri)
+			}
 			res = append(res, parsedURI)
 		}
 	}
