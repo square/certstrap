@@ -66,7 +66,7 @@ Created out/Alice.key
 Created out/Alice.csr
 ```
 
-certstrap requires at least one of `-common-name`, `-ip`, `-domain`, or `-uri` flags to be set in order to generate a certificate signing request.  The CN for the certificate will be found from these fields.
+certstrap requires either `-common-name` or `-domain` flag to be set in order to generate a certificate signing request.  The CN for the certificate will be found from these fields.
 
 If your server has mutiple ip addresses or domains, use comma seperated ip/domain/uri list. eg: `./certstrap request-cert -ip $ip1,$ip2 -domain $domain1,$domain2 -uri $uri1,$uri2`
 
