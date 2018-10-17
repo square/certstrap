@@ -41,7 +41,7 @@ func NewCertRequestCommand() cli.Command {
 			cli.StringFlag{"organization, o", "", "Certificate organization", ""},
 			cli.StringFlag{"country, c", "", "Certificate country", ""},
 			cli.StringFlag{"locality, l", "", "Certificate locality", ""},
-			cli.StringFlag{"common-name, cn", "", "Certificate common name, will be IP address or domain if left empty", ""},
+			cli.StringFlag{"common-name, cn", "", "Certificate common name, will be domain if left empty, fail otherwise", ""},
 			cli.StringFlag{"organizational-unit, ou", "", "Certificate organizational unit", ""},
 			cli.StringFlag{"province, st", "", "Certificate state/province", ""},
 			cli.StringFlag{"ip", "", "IP address entries for subject alt name (comma separated)", ""},
@@ -84,10 +84,8 @@ func newCertAction(c *cli.Context) {
 		name = c.String("common-name")
 	case len(domains) != 0:
 		name = domains[0]
-	case len(ips) != 0:
-		name = ips[0].String()
 	default:
-		fmt.Fprintln(os.Stderr, "Must provide Common Name or SAN")
+		fmt.Fprintln(os.Stderr, "Must provide Common Name or domain")
 		os.Exit(1)
 	}
 

@@ -45,7 +45,7 @@ func TestWorkflow(t *testing.T) {
 		t.Fatalf("Received incorrect create: %v", stdout)
 	}
 
-	stdout, stderr, err = run(binPath, "request-cert", "--passphrase", passphrase, "--ip", "127.0.0.1,8.8.8.8")
+	stdout, stderr, err = run(binPath, "request-cert", "--passphrase", passphrase, "--ip", "127.0.0.1,8.8.8.8", "--common-name", "127.0.0.1")
 	if stderr != "" || err != nil {
 		t.Fatalf("Received unexpected error: %v, %v", stderr, err)
 	}
