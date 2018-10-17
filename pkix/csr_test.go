@@ -79,7 +79,7 @@ func TestCreateCertificateSigningRequest(t *testing.T) {
 		t.Fatal("Failed creating rsa key:", err)
 	}
 
-	csr, err := CreateCertificateSigningRequest(key, csrHostname, nil, nil, "example", "US", "California", "San Francisco", csrCN)
+	csr, err := CreateCertificateSigningRequest(key, csrHostname, nil, nil, nil, "example", "US", "California", "San Francisco", csrCN)
 	if err != nil {
 		t.Fatal("Failed creating certificate request:", err)
 	}
