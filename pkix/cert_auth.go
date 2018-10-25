@@ -47,9 +47,8 @@ var (
 	authTemplate = x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject:      authPkixName,
-		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
-		NotBefore: time.Now().Add(-600).UTC(),
-		NotAfter:  time.Time{},
+		NotBefore:    time.Time{},
+		NotAfter:     time.Time{},
 		// Used for certificate signing only
 		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 
@@ -58,7 +57,7 @@ var (
 
 		// activate CA
 		BasicConstraintsValid: true,
-		IsCA: true,
+		IsCA:                  true,
 		// Not allow any non-self-issued intermediate CA, sets MaxPathLen=0
 		MaxPathLenZero: true,
 
@@ -77,13 +76,15 @@ var (
 
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
-func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string) (*Certificate, error) {
+func CreateCertificateAuthority(key *Key, organizationalUnit string, notAfter time.Time, notBefore time.Time, organization string, country string, province string, locality string, commonName string) (*Certificate, error) {
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
 	if err != nil {
 		return nil, err
 	}
 	authTemplate.SubjectKeyId = subjectKeyID
-	authTemplate.NotAfter = expiry
+	authTemplate.NotAfter = notAfter
+	authTemplate.NotBefore = notBefore
+
 	if len(country) > 0 {
 		authTemplate.Subject.Country = []string{country}
 	}
@@ -113,7 +114,7 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 
 // CreateIntermediateCertificateAuthority creates an intermediate
 // CA certificate signed by the given authority.
-func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, notBeforeTime time.Time) (*Certificate, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -136,6 +137,7 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 	} else {
 		authTemplate.NotAfter = proposedExpiry
 	}
+	authTemplate.NotBefore = notBeforeTime
 
 	authTemplate.SubjectKeyId, err = GenerateSubjectKeyID(rawCsr.PublicKey)
 	if err != nil {

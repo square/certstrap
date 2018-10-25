@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
@@ -37,6 +38,7 @@ func NewSignCommand() cli.Command {
 			cli.StringFlag{"passphrase", "", "Passphrase to decrypt private-key PEM block of CA", ""},
 			cli.IntFlag{"years", 0, "DEPRECATED; Use --expires instead", ""},
 			cli.StringFlag{"expires", "2 years", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
+			cli.StringFlag{"notbefore", "18 months", "NotBefore.  If blank, will use current time", ""},
 			cli.StringFlag{"CA", "", "CA to sign cert", ""},
 			cli.BoolFlag{"stdout", "Print certificate to stdout in addition to saving file", ""},
 			cli.BoolFlag{"intermediate", "Generated certificate should be a intermediate", ""},
@@ -70,6 +72,18 @@ func newSignAction(c *cli.Context) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid expiry: %s\n", err)
 		os.Exit(1)
+	}
+
+	var notBeforeTime time.Time
+	if c.IsSet("notbefore") {
+		notBefore := c.String("notbefore")
+		notBeforeTime, err = parseNotBefore(notBefore)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid notbefore: %s\n", err)
+			os.Exit(1)
+		}
+	} else {
+		notBeforeTime = time.Now().Add(-time.Minute * 10).UTC()
 	}
 
 	csr, err := depot.GetCertificateSigningRequest(d, formattedReqName)
@@ -108,7 +122,7 @@ func newSignAction(c *cli.Context) {
 	var crtOut *pkix.Certificate
 	if c.Bool("intermediate") {
 		fmt.Fprintf(os.Stderr, "Building intermediate")
-		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
+		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime, notBeforeTime)
 	} else {
 		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime)
 	}

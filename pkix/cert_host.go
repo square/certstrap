@@ -33,7 +33,7 @@ var (
 		// **SHOULD** be filled in host info
 		Subject: pkix.Name{},
 		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
-		NotBefore: time.Now().Add(-600).UTC(),
+		NotBefore: time.Now().Add(-time.Minute * 10).UTC(),
 		// 10-year lease
 		NotAfter: time.Time{},
 		// Used for certificate signing only
