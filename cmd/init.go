@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
@@ -52,6 +53,11 @@ func NewInitCommand() cli.Command {
 				Name:  "expires",
 				Value: "18 months",
 				Usage: "How long until the certificate expires (example: 1 year 2 days 3 months 4 hours)",
+			},
+			cli.StringFlag{
+				Name:  "not-before",
+				Value: "18 months",
+				Usage: "Sets NotBefore. If blank, will use current time",
 			},
 			cli.StringFlag{
 				Name:  "organization, o",
@@ -117,6 +123,18 @@ func initAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	var notBeforeTime time.Time
+	if c.IsSet("not-before") {
+		notBefore := c.String("not-before")
+		notBeforeTime, err = parseNotBefore(notBefore)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid not-before: %s\n", err)
+			os.Exit(1)
+		}
+	} else {
+		notBeforeTime = time.Now().Add(-time.Minute * 10).UTC()
+	}
+
 	var passphrase []byte
 	if c.IsSet("passphrase") {
 		passphrase = []byte(c.String("passphrase"))
@@ -150,7 +168,7 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"))
+	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, notBeforeTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)

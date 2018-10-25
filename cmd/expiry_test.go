@@ -144,6 +144,47 @@ func TestParseInvalidExpiry(t *testing.T) {
 	}
 }
 
+func TestParseNotBeforeWithMixed(t *testing.T) {
+	t1, _ := parseNotBefore("2 days 3 months 1 year")
+	t2, _ := parseNotBefore("5 years 5 days 6 months")
+	expectedt1, _ := time.Parse(dateFormat, "2015-09-29")
+	expectedt2, _ := time.Parse(dateFormat, "2011-06-26")
+
+	if t1 != expectedt1 {
+		t.Fatalf("Parsing notbefore for mixed format t1 did not return expected value (wanted: %s, got: %s)", expectedt1, t1)
+	}
+
+	if t2 != expectedt2 {
+		t.Fatalf("Parsing notbefore for mixed format t2 did not return expected value (wanted: %s, got: %s)", expectedt2, t2)
+	}
+}
+
+func TestParseInvalidNotBefore(t *testing.T) {
+	errorTime := onlyTime(time.Parse("2006-01-02 15:04:05", "2016-12-31 23:50:00"))
+	cases := []struct {
+		Input       string
+		Expected    time.Time
+		ExpectedErr string
+	}{
+		{"53257284647843897", errorTime, "invalid or empty format"},
+		{"5y", errorTime, "invalid or empty format"},
+		{"53257284647843897 days", errorTime, ".*value out of range"},
+		{"2147483647 hours", errorTime, ".*hour unit too large.*"},
+		{"2147483647 days", errorTime, ".*proposed date too far in to the past.*"},
+	}
+
+	for _, c := range cases {
+		result, err := parseNotBefore(c.Input)
+		if result != c.Expected {
+			t.Fatalf("Invalid notbefore '%s' did not have expected value (wanted: %s, got: %s)", c.Input, c.Expected, result)
+		}
+
+		if match, _ := regexp.MatchString(c.ExpectedErr, fmt.Sprintf("%s", err)); !match {
+			t.Fatalf("Invalid notbefore '%s' did not have expected error (wanted: %s, got: %s)", c.Input, c.ExpectedErr, err)
+		}
+	}
+}
+
 func onlyTime(a time.Time, b error) time.Time {
 	return a
 }

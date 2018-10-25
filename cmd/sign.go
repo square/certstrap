@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
@@ -46,6 +47,11 @@ func NewSignCommand() cli.Command {
 				Name:  "expires",
 				Value: "2 years",
 				Usage: "How long until the certificate expires (example: 1 year 2 days 3 months 4 hours)",
+			},
+			cli.StringFlag{
+				Name:  "not-before",
+				Value: "18 months",
+				Usage: "Sets NotBefore. If blank, will use current time",
 			},
 			cli.StringFlag{
 				Name:  "CA",
@@ -99,6 +105,18 @@ func newSignAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	var notBeforeTime time.Time
+	if c.IsSet("not-before") {
+		notBefore := c.String("not-before")
+		notBeforeTime, err = parseNotBefore(notBefore)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid not-before: %s\n", err)
+			os.Exit(1)
+		}
+	} else {
+		notBeforeTime = time.Now().Add(-time.Minute * 10).UTC()
+	}
+
 	csr, err := getCertificateSigningRequest(c, d, formattedReqName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Get certificate request error:", err)
@@ -140,7 +158,7 @@ func newSignAction(c *cli.Context) {
 	var crtOut *pkix.Certificate
 	if c.Bool("intermediate") {
 		fmt.Fprintln(os.Stderr, "Building intermediate")
-		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
+		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime, notBeforeTime)
 	} else {
 		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime)
 	}
