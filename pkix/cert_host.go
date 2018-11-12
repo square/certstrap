@@ -97,6 +97,8 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 	hostTemplate.DNSNames = rawCsr.DNSNames
 	hostTemplate.URIs = rawCsr.URIs
 
+	hostTemplate.ExtraExtensions = rawCsr.Extensions
+
 	rawCrtAuth, err := crtAuth.GetRawCertificate()
 	if err != nil {
 		return nil, err

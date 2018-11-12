@@ -92,8 +92,7 @@ func ParseAndValidateURIs(uriList string) (res []*url.URL, err error) {
 }
 
 // CreateCertificateSigningRequest sets up a request to create a csr file with the given parameters
-func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, uriList []*url.URL, organization string, country string, province string, locality string, commonName string) (*CertificateSigningRequest, error) {
-
+func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, uriList []*url.URL, organization string, country string, province string, locality string, commonName string, extensions *[]pkix.Extension) (*CertificateSigningRequest, error) {
 	csrPkixName.CommonName = commonName
 
 	if len(organizationalUnit) > 0 {
@@ -116,6 +115,9 @@ func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList
 		IPAddresses: ipList,
 		DNSNames:    domainList,
 		URIs:        uriList,
+	}
+	if extensions != nil {
+		(*csrTemplate).ExtraExtensions = *extensions
 	}
 
 	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key.Private)

@@ -146,6 +146,8 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 	authTemplate.DNSNames = rawCsr.DNSNames
 	authTemplate.URIs = rawCsr.URIs
 
+	authTemplate.ExtraExtensions = rawCsr.Extensions
+
 	rawCrtAuth, err := crtAuth.GetRawCertificate()
 	if err != nil {
 		return nil, err
