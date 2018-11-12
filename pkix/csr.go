@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"net/url"
 	"strings"
 )
 
@@ -69,9 +70,29 @@ func ParseAndValidateIPs(ipList string) (res []net.IP, err error) {
 	return
 }
 
-// CreateCertificateSigningRequest sets up a request to create a csr file with the given parameters
-func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, organization string, country string, province string, locality string, commonName string, extensions *[]pkix.Extension) (*CertificateSigningRequest, error) {
+// ParseAndValidateURIs parses a comma-delimited list of URIs into an array of url.URLs
+func ParseAndValidateURIs(uriList string) (res []*url.URL, err error) {
+	if len(uriList) > 0 {
+		uris := strings.Split(uriList, ",")
+		for _, uri := range uris {
+			parsedURI, err := url.Parse(uri)
+			if err != nil {
+				parsedURI = nil
+			}
+			if parsedURI == nil {
+				return nil, fmt.Errorf("Invalid URI: %s", uri)
+			}
+			if !parsedURI.IsAbs() {
+				return nil, fmt.Errorf("Invalid URI: %s", uri)
+			}
+			res = append(res, parsedURI)
+		}
+	}
+	return
+}
 
+// CreateCertificateSigningRequest sets up a request to create a csr file with the given parameters
+func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, uriList []*url.URL, organization string, country string, province string, locality string, commonName string, extensions *[]pkix.Extension) (*CertificateSigningRequest, error) {
 	csrPkixName.CommonName = commonName
 
 	if len(organizationalUnit) > 0 {
@@ -93,6 +114,7 @@ func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList
 		Subject:     csrPkixName,
 		IPAddresses: ipList,
 		DNSNames:    domainList,
+		URIs:        uriList,
 	}
 	if extensions != nil {
 		(*csrTemplate).ExtraExtensions = *extensions

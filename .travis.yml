@@ -1,8 +1,7 @@
 language: go
 sudo: false
 go:
-- 1.5.x
-- 1.9.x
+- 1.11.x
 deploy:
   provider: releases
   api_key:
@@ -14,10 +13,10 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    go: 1.9
+    go: 1.11
 install:
 - go get -d -t -v ./...
-- go get github.com/tools/godep
+- go get github.com/golang/dep/cmd/dep
 before_script:
 - ./build
 script:

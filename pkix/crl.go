@@ -48,6 +48,11 @@ type CertificateRevocationList struct {
 	derBytes []byte
 }
 
+//DERBytes returns DER-formatted bytes of the CRL.
+func (c *CertificateRevocationList) DERBytes() []byte {
+	return c.derBytes
+}
+
 // NewCertificateRevocationListFromDER inits CertificateRevocationList from DER-format bytes
 func NewCertificateRevocationListFromDER(derBytes []byte) *CertificateRevocationList {
 	return &CertificateRevocationList{derBytes: derBytes}

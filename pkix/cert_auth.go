@@ -144,6 +144,7 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 
 	authTemplate.IPAddresses = rawCsr.IPAddresses
 	authTemplate.DNSNames = rawCsr.DNSNames
+	authTemplate.URIs = rawCsr.URIs
 
 	authTemplate.ExtraExtensions = rawCsr.Extensions
 

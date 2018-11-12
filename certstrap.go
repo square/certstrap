@@ -20,7 +20,7 @@ package main
 import (
 	"os"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/cmd"
 	"github.com/square/certstrap/depot"
 )
@@ -44,6 +44,7 @@ func main() {
 		cmd.NewInitCommand(),
 		cmd.NewCertRequestCommand(),
 		cmd.NewSignCommand(),
+		cmd.NewRevokeCommand(),
 	}
 	app.Before = func(c *cli.Context) error {
 		cmd.InitDepot(c.String("depot-path"))

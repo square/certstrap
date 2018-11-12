@@ -21,9 +21,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 
-	"github.com/square/certstrap/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
 
@@ -44,11 +45,12 @@ func NewCertRequestCommand() cli.Command {
 			cli.StringFlag{"organization, o", "", "Certificate organization", ""},
 			cli.StringFlag{"country, c", "", "Certificate country", ""},
 			cli.StringFlag{"locality, l", "", "Certificate locality", ""},
-			cli.StringFlag{"common-name, cn", "", "Certificate common name, will be IP address or domain if left empty", ""},
+			cli.StringFlag{"common-name, cn", "", "Certificate common name, will be domain if left empty, fail otherwise", ""},
 			cli.StringFlag{"organizational-unit, ou", "", "Certificate organizational unit", ""},
 			cli.StringFlag{"province, st", "", "Certificate state/province", ""},
 			cli.StringFlag{"ip", "", "IP address entries for subject alt name (comma separated)", ""},
 			cli.StringFlag{"domain", "", "DNS entries for subject alt name (comma separated)", ""},
+			cli.StringFlag{"uri", "", "URI for subject alt name (comma separated)", ""},
 			cli.StringFlag{"key", "", "Path to private key PEM file.  If blank, will generate new keypair.", ""},
 			cli.BoolFlag{"stdout", "Print signing request to stdout in addition to saving file", ""},
 
@@ -70,6 +72,14 @@ func newCertAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	// The CLI Context returns an empty string ("") if no value is available
+	uris, err := pkix.ParseAndValidateURIs(c.String("uri"))
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	domains := strings.Split(c.String("domain"), ",")
 	if c.String("domain") == "" {
 		domains = nil
@@ -80,14 +90,12 @@ func newCertAction(c *cli.Context) {
 		name = c.String("common-name")
 	case len(domains) != 0:
 		name = domains[0]
-	case len(ips) != 0:
-		name = ips[0].String()
 	default:
-		fmt.Fprintln(os.Stderr, "Must provide Common Name or SAN")
+		fmt.Fprintln(os.Stderr, "Must provide Common Name or domain")
 		os.Exit(1)
 	}
 
-	formattedName := strings.Replace(name, " ", "_", -1)
+	var formattedName = formatName(name)
 
 	if depot.CheckCertificateSigningRequest(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
 		fmt.Fprintln(os.Stderr, "Certificate request has existed!")
@@ -178,7 +186,7 @@ func newCertAction(c *cli.Context) {
 		extensions = &extensionsList
 	}
 
-	csr, err := pkix.CreateCertificateSigningRequest(key, c.String("organizational-unit"), ips, domains, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), name, extensions)
+	csr, err := pkix.CreateCertificateSigningRequest(key, c.String("organizational-unit"), ips, domains, uris, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), name, extensions)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate request error:", err)
 		os.Exit(1)
@@ -192,7 +200,7 @@ func newCertAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Print certificate request error:", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(csrBytes[:]))
+			fmt.Printf(string(csrBytes))
 		}
 	}
 
@@ -208,4 +216,13 @@ func newCertAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Save private key error:", err)
 		}
 	}
+}
+
+func formatName(name string) string {
+	var filenameAcceptable, err = regexp.Compile("[^a-zA-Z0-9._-]")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error compiling regex:", err)
+		os.Exit(1)
+	}
+	return string(filenameAcceptable.ReplaceAll([]byte(name), []byte("_")))
 }

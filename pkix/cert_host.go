@@ -95,6 +95,7 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 
 	hostTemplate.IPAddresses = rawCsr.IPAddresses
 	hostTemplate.DNSNames = rawCsr.DNSNames
+	hostTemplate.URIs = rawCsr.URIs
 
 	hostTemplate.ExtraExtensions = rawCsr.Extensions
 
