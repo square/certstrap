@@ -1,0 +1,9 @@
+# github.com/codegangsta/cli v1.4.1
+github.com/codegangsta/cli
+# github.com/howeyc/gopass v0.0.0-20150207205041-2c70fa70727c
+github.com/howeyc/gopass
+# golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/sys v0.0.0-20180920110915-d641721ec2de
+golang.org/x/sys/unix
+golang.org/x/sys/windows
