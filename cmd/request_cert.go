@@ -24,9 +24,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
+	"github.com/urfave/cli"
 )
 
 // NewCertRequestCommand sets up a "request-cert" command to create a request for a new certificate (CSR)
@@ -34,21 +34,61 @@ func NewCertRequestCommand() cli.Command {
 	return cli.Command{
 		Name:        "request-cert",
 		Usage:       "Create certificate request for host",
-		Description: "Create certificate for host, including certificate signing request and key.  Must sign the request in order to generate a certificate.",
+		Description: "Create certificate for host, including certificate signing request and key. Must sign the request in order to generate a certificate.",
 		Flags: []cli.Flag{
-			cli.StringFlag{"passphrase", "", "Passphrase to encrypt private-key PEM block", ""},
-			cli.IntFlag{"key-bits", 2048, "Bit size of RSA keypair to generate", ""},
-			cli.StringFlag{"organization, o", "", "Certificate organization", ""},
-			cli.StringFlag{"country, c", "", "Certificate country", ""},
-			cli.StringFlag{"locality, l", "", "Certificate locality", ""},
-			cli.StringFlag{"common-name, cn", "", "Certificate common name, will be domain if left empty, fail otherwise", ""},
-			cli.StringFlag{"organizational-unit, ou", "", "Certificate organizational unit", ""},
-			cli.StringFlag{"province, st", "", "Certificate state/province", ""},
-			cli.StringFlag{"ip", "", "IP address entries for subject alt name (comma separated)", ""},
-			cli.StringFlag{"domain", "", "DNS entries for subject alt name (comma separated)", ""},
-			cli.StringFlag{"uri", "", "URI for subject alt name (comma separated)", ""},
-			cli.StringFlag{"key", "", "Path to private key PEM file.  If blank, will generate new keypair.", ""},
-			cli.BoolFlag{"stdout", "Print signing request to stdout in addition to saving file", ""},
+			cli.StringFlag{
+				Name:  "passphrase",
+				Usage: "Passphrase to encrypt private-key PEM block",
+			},
+			cli.IntFlag{
+				Name:  "key-bits",
+				Value: 2048,
+				Usage: "Size (in bits) of RSA keypair to generate (example: 4096)",
+			},
+			cli.StringFlag{
+				Name:  "organization, o",
+				Usage: "Sets the Organization (O) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "country, c",
+				Usage: "Sets the Country (C) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "locality, l",
+				Usage: "Sets the Locality (L) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "common-name, cn",
+				Usage: "Sets the Common Name (CN) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "organizational-unit, ou",
+				Usage: "Sets the Organizational Unit (OU) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "province, st",
+				Usage: "Sets the State/Province (ST) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "ip",
+				Usage: "IP addresses to add as subject alt name (comma separated)",
+			},
+			cli.StringFlag{
+				Name:  "domain",
+				Usage: "DNS entries to add as subject alt name (comma separated)",
+			},
+			cli.StringFlag{
+				Name:  "uri",
+				Usage: "URI values to add as subject alt name (comma separated)",
+			},
+			cli.StringFlag{
+				Name:  "key",
+				Usage: "Path to private key PEM file (if blank, will generate new keypair)",
+			},
+			cli.BoolFlag{
+				Name:  "stdout",
+				Usage: "Print signing request to stdout in addition to saving file",
+			},
 		},
 		Action: newCertAction,
 	}

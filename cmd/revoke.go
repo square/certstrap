@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
+	"github.com/urfave/cli"
 )
 
 type revokeCommand struct {
@@ -26,8 +26,14 @@ func NewRevokeCommand() cli.Command {
 		Usage:       "Revoke certificate",
 		Description: "Add certificate to the CA's CRL.",
 		Flags: []cli.Flag{
-			cli.StringFlag{"CN", "", "Certificate's CN to revoke", ""},
-			cli.StringFlag{"CA", "", "CA's name to revoke cert", ""},
+			cli.StringFlag{
+				Name:  "CN",
+				Usage: "Common Name (CN) of certificate to revoke",
+			},
+			cli.StringFlag{
+				Name:  "CA",
+				Usage: "Name of CA under which certificate was issued",
+			},
 		},
 		Action: new(revokeCommand).run,
 	}

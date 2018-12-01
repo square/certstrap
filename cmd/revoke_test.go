@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
+	"github.com/urfave/cli"
 )
 
 const (

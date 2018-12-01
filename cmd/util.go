@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/codegangsta/cli"
 	"github.com/howeyc/gopass"
 	"github.com/square/certstrap/depot"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -46,11 +46,14 @@ func InitDepot(path string) error {
 }
 
 func createPassPhrase() ([]byte, error) {
-	fmt.Fprint(os.Stderr, "Enter passphrase (empty for no passphrase): ")
-	pass1 := gopass.GetPasswd()
-	fmt.Fprint(os.Stderr, "\nEnter same passphrase again: ")
-	pass2 := gopass.GetPasswd()
-	fmt.Fprintln(os.Stderr)
+	pass1, err := gopass.GetPasswdPrompt("Enter passphrase (empty for no passphrase): ", false, os.Stdin, os.Stdout)
+	if err != nil {
+		return nil, err
+	}
+	pass2, err := gopass.GetPasswdPrompt("Enter same passphrase again: ", false, os.Stdin, os.Stdout)
+	if err != nil {
+		return nil, err
+	}
 
 	if bytes.Compare(pass1, pass2) != 0 {
 		return nil, errors.New("Passphrases do not match.")
@@ -58,16 +61,17 @@ func createPassPhrase() ([]byte, error) {
 	return pass1, nil
 }
 
-func askPassPhrase(name string) []byte {
-	fmt.Fprintf(os.Stderr, "Enter passphrase for %v (empty for no passphrase): ", name)
-	pass := gopass.GetPasswd()
-	fmt.Fprintln(os.Stderr)
-	return pass
+func askPassPhrase(name string) ([]byte, error) {
+	pass, err := gopass.GetPasswdPrompt(fmt.Sprintf("Enter passphrase for %v (empty for no passphrase): ", name), false, os.Stdin, os.Stdout)
+	if err != nil {
+		return nil, err
+	}
+	return pass, nil
 }
 
-func getPassPhrase(c *cli.Context, name string) []byte {
+func getPassPhrase(c *cli.Context, name string) ([]byte, error) {
 	if c.IsSet("passphrase") {
-		return []byte(c.String("passphrase"))
+		return []byte(c.String("passphrase")), nil
 	}
 	return askPassPhrase(name)
 }
