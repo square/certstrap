@@ -23,9 +23,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
+	"github.com/urfave/cli"
 )
 
 // NewInitCommand sets up an "init" command to initialize a new CA
@@ -35,25 +35,62 @@ func NewInitCommand() cli.Command {
 		Usage:       "Create Certificate Authority",
 		Description: "Create Certificate Authority, including certificate, key and extra information file.",
 		Flags: []cli.Flag{
-			cli.StringFlag{"passphrase", "", "Passphrase to encrypt private-key PEM block", ""},
-			cli.IntFlag{"key-bits", 4096, "Bit size of RSA keypair to generate", ""},
-			cli.IntFlag{"years", 0, "DEPRECATED; Use --expires instead", ""},
-			cli.StringFlag{"expires", "18 months", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
-			cli.StringFlag{"organization, o", "", "CA Certificate organization", ""},
-			cli.StringFlag{"organizational-unit, ou", "", "CA Certificate organizational unit", ""},
-			cli.StringFlag{"country, c", "", "CA Certificate country", ""},
-			cli.StringFlag{"common-name, cn", "", "CA Common Name", ""},
-			cli.StringFlag{"province, st", "", "CA state/province", ""},
-			cli.StringFlag{"locality, l", "", "CA locality", ""},
-			cli.StringFlag{"key", "", "Path to private key PEM file.  If blank, will generate new keypair.", ""},
-			cli.BoolFlag{"stdout", "Print CA certificate to stdout in addition to saving file", ""},
+			cli.StringFlag{
+				Name:  "passphrase",
+				Usage: "Passphrase to encrypt private key PEM block",
+			},
+			cli.IntFlag{
+				Name:  "key-bits",
+				Value: 4096,
+				Usage: "Size (in bits) of RSA keypair to generate (example: 4096)",
+			},
+			cli.IntFlag{
+				Name:   "years",
+				Hidden: true,
+			},
+			cli.StringFlag{
+				Name:  "expires",
+				Value: "18 months",
+				Usage: "How long until the certificate expires (example: 1 year 2 days 3 months 4 hours)",
+			},
+			cli.StringFlag{
+				Name:  "organization, o",
+				Usage: "Sets the Organization (O) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "organizational-unit, ou",
+				Usage: "Sets the Organizational Unit (OU) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "country, c",
+				Usage: "Sets the Country (C) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "common-name, cn",
+				Usage: "Sets the Common Name (CN) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "province, st",
+				Usage: "Sets the State/Province (ST) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "locality, l",
+				Usage: "Sets the Locality (L) field of the certificate",
+			},
+			cli.StringFlag{
+				Name:  "key",
+				Usage: "Path to private key PEM file (if blank, will generate new key pair)",
+			},
+			cli.BoolFlag{
+				Name:  "stdout",
+				Usage: "Print certificate to stdout in addition to saving file",
+			},
 		},
 		Action: initAction,
 	}
 }
 
 func initAction(c *cli.Context) {
-
 	if !c.IsSet("common-name") {
 		fmt.Println("Must supply Common Name for CA")
 		os.Exit(1)

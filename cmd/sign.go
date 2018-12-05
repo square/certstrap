@@ -22,9 +22,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
+	"github.com/urfave/cli"
 )
 
 // NewSignCommand sets up a "sign" command to sign a CSR with a given CA for a new certificate
@@ -34,12 +34,31 @@ func NewSignCommand() cli.Command {
 		Usage:       "Sign certificate request",
 		Description: "Sign certificate request with CA, and generate certificate for the host.",
 		Flags: []cli.Flag{
-			cli.StringFlag{"passphrase", "", "Passphrase to decrypt private-key PEM block of CA", ""},
-			cli.IntFlag{"years", 0, "DEPRECATED; Use --expires instead", ""},
-			cli.StringFlag{"expires", "2 years", "How long until the certificate expires. Example: 1 year 2 days 3 months 4 hours", ""},
-			cli.StringFlag{"CA", "", "CA to sign cert", ""},
-			cli.BoolFlag{"stdout", "Print certificate to stdout in addition to saving file", ""},
-			cli.BoolFlag{"intermediate", "Generated certificate should be a intermediate", ""},
+			cli.StringFlag{
+				Name:  "passphrase",
+				Usage: "Passphrase to decrypt private-key PEM block of CA",
+			},
+			cli.IntFlag{
+				Name:   "years",
+				Hidden: true,
+			},
+			cli.StringFlag{
+				Name:  "expires",
+				Value: "2 years",
+				Usage: "How long until the certificate expires (example: 1 year 2 days 3 months 4 hours)",
+			},
+			cli.StringFlag{
+				Name:  "CA",
+				Usage: "Name of CA to issue cert with",
+			},
+			cli.BoolFlag{
+				Name:  "stdout",
+				Usage: "Print certificate to stdout in addition to saving file",
+			},
+			cli.BoolFlag{
+				Name:  "intermediate",
+				Usage: "Whether generated certificate should be a intermediate",
+			},
 		},
 		Action: newSignAction,
 	}
@@ -98,9 +117,14 @@ func newSignAction(c *cli.Context) {
 
 	key, err := depot.GetPrivateKey(d, formattedCAName)
 	if err != nil {
-		key, err = depot.GetEncryptedPrivateKey(d, formattedCAName, getPassPhrase(c, "CA key"))
+		pass, err := getPassPhrase(c, "CA key")
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Get CA key error:", err)
+			fmt.Fprintln(os.Stderr, "Get CA key error: ", err)
+			os.Exit(1)
+		}
+		key, err = depot.GetEncryptedPrivateKey(d, formattedCAName, pass)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Get CA key error: ", err)
 			os.Exit(1)
 		}
 	}

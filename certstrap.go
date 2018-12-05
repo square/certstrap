@@ -20,9 +20,9 @@ package main
 import (
 	"os"
 
-	"github.com/codegangsta/cli"
 	"github.com/square/certstrap/cmd"
 	"github.com/square/certstrap/depot"
+	"github.com/urfave/cli"
 )
 
 func main() {
