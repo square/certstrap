@@ -1,0 +1,8 @@
+github.com/codegangsta/cli v1.4.1 h1:7xZkwhPFJbUrA8xoPC/cdcKtycAsYUlsxRa5L9hK0tg=
+github.com/codegangsta/cli v1.4.1/go.mod h1:/qJNoX69yVSKu5o4jLyXAENLRyk1uhi7zkbQ3slBdOA=
+github.com/howeyc/gopass v0.0.0-20150207205041-2c70fa70727c h1:fOuwOvnzFu4PTzmkm88LZZNOrov9+5bPNsWUrgUs/LM=
+github.com/howeyc/gopass v0.0.0-20150207205041-2c70fa70727c/go.mod h1:lADxMC39cJJqL93Duh1xhAs4I2Zs8mKS89XWXFGp9cs=
+golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b h1:2b9XGzhjiYsYPnKXoEfL7klWZQIt8IfyRCz62gCqqlQ=
+golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
+golang.org/x/sys v0.0.0-20180920110915-d641721ec2de h1:soC2mvPVpAV+Ld2qtpNn1eq25WTn76uIGNV23bofu6Q=
+golang.org/x/sys v0.0.0-20180920110915-d641721ec2de/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
