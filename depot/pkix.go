@@ -190,7 +190,7 @@ func GetCertificateRevocationList(d Depot, name string) (*pkix.CertificateRevoca
 	return pkix.NewCertificateRevocationListFromPEM(b)
 }
 
-func getName(tag *Tag, suffix string) {
+func getName(tag *Tag, suffix string) string {
 	name := strings.TrimSuffix(tag.name, suffix)
 	if name == tag.name {
 		return ""
