@@ -70,7 +70,7 @@ func GetNameFromCsrTag(tag *Tag) string {
 	return getName(tag, csrSuffix)
 }
 
-// GetNameFromCrlTag returns the host name from a certificate request file tag
+// GetNameFromCrlTag returns the host name from a certificate revocation list file tag
 func GetNameFromCrlTag(tag *Tag) string {
 	return getName(tag, crlSuffix)
 }
