@@ -57,11 +57,22 @@ func CrlTag(prefix string) *Tag {
 
 // GetNameFromCrtTag returns the host name from a certificate file tag
 func GetNameFromCrtTag(tag *Tag) string {
-	name := strings.TrimSuffix(tag.name, crtSuffix)
-	if name == tag.name {
-		return ""
-	}
-	return name
+	return getName(tag, crtSuffix)
+}
+
+// GetNameFromPrivKeyTag returns the host name from a private key file tag
+func GetNameFromPrivKeyTag(tag *Tag) string {
+	return getName(tag, privKeySuffix)
+}
+
+// GetNameFromCsrTag returns the host name from a certificate request file tag
+func GetNameFromCsrTag(tag *Tag) string {
+	return getName(tag, csrSuffix)
+}
+
+// GetNameFromCrlTag returns the host name from a certificate request file tag
+func GetNameFromCrlTag(tag *Tag) string {
+	return getName(tag, crlSuffix)
 }
 
 // PutCertificate creates a certificate file for a given CA name in the depot
@@ -177,4 +188,12 @@ func GetCertificateRevocationList(d Depot, name string) (*pkix.CertificateRevoca
 		return nil, err
 	}
 	return pkix.NewCertificateRevocationListFromPEM(b)
+}
+
+func getName(tag *Tag, suffix string) {
+	name := strings.TrimSuffix(tag.name, suffix)
+	if name == tag.name {
+		return ""
+	}
+	return name
 }
