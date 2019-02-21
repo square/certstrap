@@ -132,7 +132,7 @@ func newCertAction(c *cli.Context) {
 	var formattedName = formatName(name)
 
 	if depot.CheckCertificateSigningRequest(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
-		fmt.Fprintln(os.Stderr, "Certificate request has existed!")
+		fmt.Fprintf(os.Stderr, "Certificate request \"%s\" already exists!\n", formattedName)
 		os.Exit(1)
 	}
 

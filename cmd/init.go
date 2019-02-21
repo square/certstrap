@@ -99,7 +99,7 @@ func initAction(c *cli.Context) {
 	formattedName := strings.Replace(c.String("common-name"), " ", "_", -1)
 
 	if depot.CheckCertificate(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
-		fmt.Fprintln(os.Stderr, "CA with specified name already exists!")
+		fmt.Fprintf(os.Stderr, "CA with specified name \"%s\" already exists!\n", formattedName)
 		os.Exit(1)
 	}
 
