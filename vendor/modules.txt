@@ -1,9 +1,0 @@
-# github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c
-github.com/howeyc/gopass
-# github.com/urfave/cli v1.20.0
-github.com/urfave/cli
-# golang.org/x/crypto v0.0.0-20181127143415-eb0de9b17e85
-golang.org/x/crypto/ssh/terminal
-# golang.org/x/sys v0.0.0-20181128092732-4ed8d59d0b35
-golang.org/x/sys/unix
-golang.org/x/sys/windows
