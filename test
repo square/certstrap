@@ -16,3 +16,6 @@ for mod in $PKG; do
   mod_path=$REPO_PATH/$mod
   go test -v $mod_path
 done
+
+# Lazy attempt to make sure docker images build
+docker build -t squareup/certstrap .
