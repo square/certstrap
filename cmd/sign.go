@@ -74,7 +74,7 @@ func newSignAction(c *cli.Context) {
 	formattedCAName := strings.Replace(c.String("CA"), " ", "_", -1)
 
 	if depot.CheckCertificate(d, formattedReqName) {
-		fmt.Fprintln(os.Stderr, "Certificate has existed!")
+		fmt.Fprintf(os.Stderr, "Certificate \"%s\" already exists!\n", formattedReqName)
 		os.Exit(1)
 	}
 
@@ -131,7 +131,7 @@ func newSignAction(c *cli.Context) {
 
 	var crtOut *pkix.Certificate
 	if c.Bool("intermediate") {
-		fmt.Fprintf(os.Stderr, "Building intermediate")
+		fmt.Fprintln(os.Stderr, "Building intermediate")
 		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
 	} else {
 		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime)
