@@ -20,64 +20,15 @@ package pkix
 import (
 	"crypto/rand"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"math/big"
 	"time"
-)
-
-const (
-	// hostname used by CA certificate
-	// SerialNumber to start when signing certificate request
-	authStartSerialNumber = 2
-)
-
-var (
-	authPkixName = pkix.Name{
-		Country:            nil,
-		Organization:       nil,
-		OrganizationalUnit: nil,
-		Locality:           nil,
-		Province:           nil,
-		StreetAddress:      nil,
-		PostalCode:         nil,
-		SerialNumber:       "",
-		CommonName:         "",
-	}
-	// Build CA based on RFC5280
-	authTemplate = x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject:      authPkixName,
-		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
-		NotBefore: time.Now().Add(-600).UTC(),
-		NotAfter:  time.Time{},
-		// Used for certificate signing only
-		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-
-		ExtKeyUsage:        nil,
-		UnknownExtKeyUsage: nil,
-
-		// activate CA
-		BasicConstraintsValid: true,
-		IsCA: true,
-		// Not allow any non-self-issued intermediate CA, sets MaxPathLen=0
-		MaxPathLenZero: true,
-
-		// 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
-		// (excluding the tag, length, and number of unused bits)
-		// **SHOULD** be filled in later
-		SubjectKeyId: nil,
-
-		// Subject Alternative Name
-		DNSNames: nil,
-
-		PermittedDNSDomainsCritical: false,
-		PermittedDNSDomains:         nil,
-	}
 )
 
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
 func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string) (*Certificate, error) {
+	authTemplate := newAuthTemplate()
+
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
 	if err != nil {
 		return nil, err
@@ -114,6 +65,8 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 // CreateIntermediateCertificateAuthority creates an intermediate
 // CA certificate signed by the given authority.
 func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+	authTemplate := newAuthTemplate()
+
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -157,4 +110,36 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 	}
 
 	return NewCertificateFromDER(crtOutBytes), nil
+}
+
+func newAuthTemplate() x509.Certificate {
+	// Build CA based on RFC5280
+	return x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
+		NotBefore: time.Now().Add(-600).UTC(),
+		NotAfter:  time.Time{},
+		// Used for certificate signing only
+		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+
+		ExtKeyUsage:        nil,
+		UnknownExtKeyUsage: nil,
+
+		// activate CA
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		// Not allow any non-self-issued intermediate CA, sets MaxPathLen=0
+		MaxPathLenZero: true,
+
+		// 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
+		// (excluding the tag, length, and number of unused bits)
+		// **SHOULD** be filled in later
+		SubjectKeyId: nil,
+
+		// Subject Alternative Name
+		DNSNames: nil,
+
+		PermittedDNSDomainsCritical: false,
+		PermittedDNSDomains:         nil,
+	}
 }
