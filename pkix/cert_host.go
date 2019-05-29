@@ -25,9 +25,11 @@ import (
 	"time"
 )
 
-var (
+// CreateCertificateHost creates certificate for host.
+// The arguments include CA certificate, CA key, certificate request.
+func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
 	// Build CA based on RFC5280
-	hostTemplate = x509.Certificate{
+	hostTemplate := x509.Certificate{
 		// **SHOULD** be filled in a unique number
 		SerialNumber: big.NewInt(0),
 		// **SHOULD** be filled in host info
@@ -58,11 +60,7 @@ var (
 		PermittedDNSDomainsCritical: false,
 		PermittedDNSDomains:         nil,
 	}
-)
 
-// CreateCertificateHost creates certificate for host.
-// The arguments include CA certificate, CA key, certificate request.
-func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
