@@ -83,7 +83,11 @@ func NewCertRequestCommand() cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "key",
-				Usage: "Path to private key PEM file (if blank, will generate new keypair)",
+				Usage: "Path to private key PEM file (if blank or if file doesn't exist, will generate new keypair)",
+			},
+			cli.StringFlag{
+				Name:  "csr",
+				Usage: "Path to CSR output PEM file (if blank, will use --depot-path and default name)",
 			},
 			cli.BoolFlag{
 				Name:  "stdout",
@@ -131,7 +135,8 @@ func newCertAction(c *cli.Context) {
 
 	var formattedName = formatName(name)
 
-	if depot.CheckCertificateSigningRequest(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
+	// skip the check if the --csr option is specified
+	if !c.IsSet("csr") && (depot.CheckCertificateSigningRequest(d, formattedName) || depot.CheckPrivateKey(d, formattedName)) {
 		fmt.Fprintf(os.Stderr, "Certificate request \"%s\" already exists!\n", formattedName)
 		os.Exit(1)
 	}
@@ -147,25 +152,28 @@ func newCertAction(c *cli.Context) {
 		}
 	}
 
+	// generate new key if one doesn't exist already
 	var key *pkix.Key
-	if c.IsSet("key") {
+	keyFilepath := fileName(c, "key", depotDir, formattedName, "key")
+	if c.IsSet("key") && fileExists(c.String("key")) {
 		keyBytes, err := ioutil.ReadFile(c.String("key"))
 		key, err = pkix.NewKeyFromPrivateKeyPEM(keyBytes)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Read %s.key\n", name)
+		fmt.Printf("Read %s\n", keyFilepath)
 	} else {
 		key, err = pkix.CreateRSAKey(c.Int("key-bits"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Create RSA Key error:", err)
 			os.Exit(1)
 		}
+		keyFilepath := fileName(c, "key", depotDir, formattedName, "key")
 		if len(passphrase) > 0 {
-			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, formattedName)
+			fmt.Printf("Created %s (encrypted by passphrase)\n", keyFilepath)
 		} else {
-			fmt.Printf("Created %s/%s.key\n", depotDir, formattedName)
+			fmt.Printf("Created %s\n", keyFilepath)
 		}
 	}
 
@@ -174,7 +182,7 @@ func newCertAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Create certificate request error:", err)
 		os.Exit(1)
 	} else {
-		fmt.Printf("Created %s/%s.csr\n", depotDir, formattedName)
+		fmt.Printf("Created %s\n", fileName(c, "csr", depotDir, formattedName, "csr"))
 	}
 
 	if c.Bool("stdout") {
@@ -187,15 +195,15 @@ func newCertAction(c *cli.Context) {
 		}
 	}
 
-	if err = depot.PutCertificateSigningRequest(d, formattedName, csr); err != nil {
+	if err = putCertificateSigningRequest(c, d, formattedName, csr); err != nil {
 		fmt.Fprintln(os.Stderr, "Save certificate request error:", err)
 	}
 	if len(passphrase) > 0 {
-		if err = depot.PutEncryptedPrivateKey(d, formattedName, key, passphrase); err != nil {
+		if err = putEncryptedPrivateKey(c, d, formattedName, key, passphrase); err != nil {
 			fmt.Fprintln(os.Stderr, "Save encrypted private key error:", err)
 		}
 	} else {
-		if err = depot.PutPrivateKey(d, formattedName, key); err != nil {
+		if err = putPrivateKey(c, d, formattedName, key); err != nil {
 			fmt.Fprintln(os.Stderr, "Save private key error:", err)
 		}
 	}
@@ -208,4 +216,11 @@ func formatName(name string) string {
 		os.Exit(1)
 	}
 	return string(filenameAcceptable.ReplaceAll([]byte(name), []byte("_")))
+}
+
+func fileName(c *cli.Context, flagName, depotDir, name, ext string) string {
+	if c.IsSet(flagName) {
+		return c.String(flagName)
+	}
+	return fmt.Sprintf("%s/%s.%s", depotDir, name, ext)
 }

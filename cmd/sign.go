@@ -51,6 +51,14 @@ func NewSignCommand() cli.Command {
 				Name:  "CA",
 				Usage: "Name of CA to issue cert with",
 			},
+			cli.StringFlag{
+				Name:  "csr",
+				Usage: "Path to certificate request PEM file (if blank, will use --depot-path and default name)",
+			},
+			cli.StringFlag{
+				Name:  "cert",
+				Usage: "Path to certificate output PEM file (if blank, will use --depot-path and default name)",
+			},
 			cli.BoolFlag{
 				Name:  "stdout",
 				Usage: "Print certificate to stdout in addition to saving file",
@@ -91,7 +99,7 @@ func newSignAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	csr, err := depot.GetCertificateSigningRequest(d, formattedReqName)
+	csr, err := getCertificateSigningRequest(c, d, formattedReqName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Get certificate request error:", err)
 		os.Exit(1)
@@ -154,7 +162,7 @@ func newSignAction(c *cli.Context) {
 		}
 	}
 
-	if err = depot.PutCertificate(d, formattedReqName, crtOut); err != nil {
+	if err = putCertificate(c, d, formattedReqName, crtOut); err != nil {
 		fmt.Fprintln(os.Stderr, "Save certificate error:", err)
 	}
 }

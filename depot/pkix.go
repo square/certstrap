@@ -31,28 +31,28 @@ const (
 )
 
 const (
-	branchPerm = 0440
-	leafPerm   = 0444
+	BranchPerm = 0440
+	LeafPerm   = 0444
 )
 
 // CrtTag returns a tag corresponding to a certificate
 func CrtTag(prefix string) *Tag {
-	return &Tag{prefix + crtSuffix, leafPerm}
+	return &Tag{prefix + crtSuffix, LeafPerm}
 }
 
 // PrivKeyTag returns a tag corresponding to a private key
 func PrivKeyTag(prefix string) *Tag {
-	return &Tag{prefix + privKeySuffix, branchPerm}
+	return &Tag{prefix + privKeySuffix, BranchPerm}
 }
 
 // CsrTag returns a tag corresponding to a certificate signature request file
 func CsrTag(prefix string) *Tag {
-	return &Tag{prefix + csrSuffix, leafPerm}
+	return &Tag{prefix + csrSuffix, LeafPerm}
 }
 
 // CrlTag returns a tag corresponding to a certificate revocation list
 func CrlTag(prefix string) *Tag {
-	return &Tag{prefix + crlSuffix, leafPerm}
+	return &Tag{prefix + crlSuffix, LeafPerm}
 }
 
 // GetNameFromCrtTag returns the host name from a certificate file tag
