@@ -21,10 +21,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/howeyc/gopass"
 	"github.com/square/certstrap/depot"
+	"github.com/square/certstrap/pkix"
 	"github.com/urfave/cli"
 )
 
@@ -74,4 +76,72 @@ func getPassPhrase(c *cli.Context, name string) ([]byte, error) {
 		return []byte(c.String("passphrase")), nil
 	}
 	return askPassPhrase(name)
+}
+
+func putCertificate(c *cli.Context, d *depot.FileDepot, name string, crt *pkix.Certificate) error {
+	if c.IsSet("cert") {
+		bytes, err := crt.Export()
+		if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(c.String("cert"), bytes, depot.LeafPerm)
+	}
+	return depot.PutCertificate(d, name, crt)
+}
+
+func putCertificateSigningRequest(c *cli.Context, d *depot.FileDepot, name string, csr *pkix.CertificateSigningRequest) error {
+	if c.IsSet("csr") {
+		bytes, err := csr.Export()
+		if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(c.String("csr"), bytes, depot.LeafPerm)
+	}
+	return depot.PutCertificateSigningRequest(d, name, csr)
+}
+
+func getCertificateSigningRequest(c *cli.Context, d *depot.FileDepot, name string) (*pkix.CertificateSigningRequest, error) {
+	if c.IsSet("csr") {
+		bytes, err := ioutil.ReadFile(c.String("csr"))
+		if err != nil {
+			return nil, err
+		}
+		return pkix.NewCertificateSigningRequestFromPEM(bytes)
+	}
+	return depot.GetCertificateSigningRequest(d, name)
+}
+
+func putEncryptedPrivateKey(c *cli.Context, d *depot.FileDepot, name string, key *pkix.Key, passphrase []byte) error {
+	if c.IsSet("key") {
+		if fileExists(c.String("key")) {
+			return nil
+		}
+
+		bytes, err := key.ExportEncryptedPrivate(passphrase)
+		if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(c.String("key"), bytes, depot.BranchPerm)
+	}
+	return depot.PutEncryptedPrivateKey(d, name, key, passphrase)
+}
+
+func putPrivateKey(c *cli.Context, d *depot.FileDepot, name string, key *pkix.Key) error {
+	if c.IsSet("key") {
+		if fileExists(c.String("key")) {
+			return nil
+		}
+
+		bytes, err := key.ExportPrivate()
+		if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(c.String("key"), bytes, depot.BranchPerm)
+	}
+	return depot.PutPrivateKey(d, name, key)
+}
+
+func fileExists(filepath string) bool {
+	_, err := os.Stat(filepath)
+	return !os.IsNotExist(err)
 }
