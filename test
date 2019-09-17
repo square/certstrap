@@ -8,7 +8,9 @@ if [ -z "$PKG" ]; then
     PKG="cmd depot pkix tests"
 fi
 
-export BUILD_TAG="${TRAVIS_TAG:-$(git describe --all | sed -e's/.*\///g')}"
+# tests package relies on BUILD_TAG to be exported
+# BUILD_TAG is set by build script
+export BUILD_TAG
 
 # Unit tests
 echo

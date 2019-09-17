@@ -25,10 +25,13 @@ import (
 	"github.com/urfave/cli"
 )
 
+// release is overriden by the build script using -X argument that is passed to the Go linker.
+var release = "(version not set)"
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "certstrap"
-	app.Version = "1.1.1"
+	app.Version = release
 	app.Usage = "A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure."
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
