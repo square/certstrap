@@ -1,20 +1,22 @@
 language: go
 sudo: false
 go:
-- 1.11.x
+- 1.13.x
+- 1.x
 deploy:
   provider: releases
   api_key:
-    secure: 'kewugKeaEgDvNMaapSbhMTgWXO1tje4sbyF8D77lbceOviTfKZkDKuuwVSwTU1NTKuHk5DnC00Rrfy7d4HP1xPT94P4AnI6oEjUvQvi43U8Ub/YGbrwTAZpqUyZJWwmkHaEikeFRIRuyTnHztM8/IQaEQyOvxtu2NOFnMVCpagQ='
-  file:
-  - bin/certstrap-${TRAVIS_TAG}-linux-amd64
-  - bin/certstrap-${TRAVIS_TAG}-darwin-amd64
-  - bin/certstrap-${TRAVIS_TAG}-windows-amd64
+    # mbyczkowski's OAuth token
+    secure: phWdB/u3MZyzo3EGj35PTQdOWagxmAqBxXbQWl/ROL7zYGdyV3ix2EYxElTHpJ6lEksVHRnq3vUyGn0FNBS1jDNU93HQZpC6GPvtGtHfPEWXEk9X2H4cKUsMMfhqihJoA/Fx/S1ExQyVj7JxjnFW2/36J12qlR+gGDM0MOVw08Y=
+  file_glob: true
+  file: bin/certstrap-*
   skip_cleanup: true
+  draft: true
   on:
+    repo: square/certstrap
     tags: true
-    go: 1.11
+    go: "1.13.x" # ensure that this matches one of the go versions specified at the top
 before_script:
-- ./build
+- "./build"
 script:
-- ./test
+- "./test"
