@@ -11,13 +11,15 @@ var nowFunc = time.Now
 
 func parseExpiry(fromNow string) (time.Time, error) {
 	now := nowFunc().UTC()
-	re := regexp.MustCompile("\\s*(\\d+)\\s*(day|month|year|hour)s?")
+	re := regexp.MustCompile("\\s*(\\d+)\\s*(day|month|year|hour|minute|second)s?")
 	matches := re.FindAllStringSubmatch(fromNow, -1)
 	addDate := map[string]int{
-		"day":   0,
-		"month": 0,
-		"year":  0,
-		"hour":  0,
+		"day":    0,
+		"month":  0,
+		"year":   0,
+		"hour":   0,
+		"minute": 0,
+		"second": 0,
 	}
 	for _, r := range matches {
 		number, err := strconv.ParseInt(r[1], 10, 32)
@@ -31,11 +33,17 @@ func parseExpiry(fromNow string) (time.Time, error) {
 	// Doing so is silent and causes signed integer overflow like issues.
 	if _, err := time.ParseDuration(fmt.Sprintf("%dh", addDate["hour"])); err != nil {
 		return now, fmt.Errorf("hour unit too large to process")
+	} else if _, err = time.ParseDuration(fmt.Sprintf("%dm", addDate["minute"])); err != nil {
+		return now, fmt.Errorf("minute unit too large to process")
+	} else if _, err = time.ParseDuration(fmt.Sprintf("%ds", addDate["second"])); err != nil {
+		return now, fmt.Errorf("second unit too large to process")
 	}
 
 	result := now.
 		AddDate(addDate["year"], addDate["month"], addDate["day"]).
-		Add(time.Duration(addDate["hour"]) * time.Hour)
+		Add(time.Duration(addDate["hour"]) * time.Hour).
+		Add(time.Duration(addDate["minute"]) * time.Minute).
+		Add(time.Duration(addDate["second"]) * time.Second)
 
 	if now == result {
 		return now, fmt.Errorf("invalid or empty format")

@@ -8,11 +8,54 @@ import (
 )
 
 const dateFormat = "2006-01-02"
+const timeFormat = "2006-01-02 15:04:05"
 
 func init() {
 	nowFunc = func() time.Time {
 		t, _ := time.Parse(dateFormat, "2017-01-01")
 		return t
+	}
+}
+
+func TestParseExpiryWithSeconds(t *testing.T) {
+	t1, _ := parseExpiry("1 second")
+	t2, _ := parseExpiry("1 seconds")
+	expected, _ := time.Parse(timeFormat, "2017-01-01 00:00:01")
+
+	if t1 != expected {
+		t.Fatalf("Parsing expiry 1 second from now (singular) did not return expected value (wanted: %s, got: %s)", expected, t1)
+	}
+
+	if t2 != expected {
+		t.Fatalf("Parsing expiry 1 second from now (plural) did not return expected value (wanted: %s, got: %s)", expected, t2)
+	}
+}
+
+func TestParseExpiryWithMinutes(t *testing.T) {
+	t1, _ := parseExpiry("1 minute")
+	t2, _ := parseExpiry("1 minutes")
+	expected, _ := time.Parse(timeFormat, "2017-01-01 00:01:00")
+
+	if t1 != expected {
+		t.Fatalf("Parsing expiry 1 minute from now (singular) did not return expected value (wanted: %s, got: %s)", expected, t1)
+	}
+
+	if t2 != expected {
+		t.Fatalf("Parsing expiry 1 minute from now (plural) did not return expected value (wanted: %s, got: %s)", expected, t2)
+	}
+}
+
+func TestParseExpiryWithHours(t *testing.T) {
+	t1, _ := parseExpiry("1 hour")
+	t2, _ := parseExpiry("1 hours")
+	expected, _ := time.Parse(timeFormat, "2017-01-01 01:00:00")
+
+	if t1 != expected {
+		t.Fatalf("Parsing expiry 1 hour from now (singular) did not return expected value (wanted: %s, got: %s)", expected, t1)
+	}
+
+	if t2 != expected {
+		t.Fatalf("Parsing expiry 1 hour from now (plural) did not return expected value (wanted: %s, got: %s)", expected, t2)
 	}
 }
 
@@ -84,6 +127,8 @@ func TestParseInvalidExpiry(t *testing.T) {
 		{"5y", errorTime, "invalid or empty format"},
 		{"53257284647843897 days", errorTime, ".*value out of range"},
 		{"2147483647 hours", errorTime, ".*hour unit too large.*"},
+		{"2147483647 minutes", errorTime, ".*minute unit too large.*"},
+		{"2147483648 seconds", errorTime, ".*value out of range.*"},
 		{"2147483647 days", errorTime, ".*proposed date too far in to the future.*"},
 	}
 
