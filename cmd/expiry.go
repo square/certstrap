@@ -11,7 +11,7 @@ var nowFunc = time.Now
 
 func parseExpiry(fromNow string) (time.Time, error) {
 	now := nowFunc().UTC()
-	re := regexp.MustCompile("\\s*(\\d+)\\s*(day|month|year|hour|minute|second)s?")
+	re := regexp.MustCompile(`\s*(\d+)\s*(day|month|year|hour|minute|second)s?`)
 	matches := re.FindAllStringSubmatch(fromNow, -1)
 	addDate := map[string]int{
 		"day":    0,
