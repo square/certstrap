@@ -69,7 +69,7 @@ func NewSignCommand() cli.Command {
 				Usage: "Whether generated certificate should be a intermediate",
 			},
 			cli.BoolFlag{
-				Name:  "codsigning",
+				Name:  "codesigning",
 				Usage: "Whether generated certificate should include the codeSigning extended key usage extension",
 			},
 		},
