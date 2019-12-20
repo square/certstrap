@@ -1,7 +1,8 @@
 language: go
-sudo: false
+
 go:
 - 1.13.x
+
 deploy:
   provider: releases
   api_key:
@@ -15,7 +16,6 @@ deploy:
     repo: square/certstrap
     tags: true
     go: "1.13.x" # ensure that this matches one of the go versions specified at the top
-before_script:
-- "./build"
+
 script:
-- "./test"
+- "./integration_test"

@@ -1,3 +1,5 @@
+// +build integration
+
 /*-
  * Copyright 2015 Square Inc.
  * Copyright 2014 CoreOS
@@ -19,19 +21,19 @@ package tests
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"testing"
-	"runtime"
-	"fmt"
-	"os"
 )
 
 const (
-	depotDir         = ".certstrap-test"
-	hostname         = "host1"
-	passphrase       = "123456"
+	depotDir   = ".certstrap-test"
+	hostname   = "host1"
+	passphrase = "123456"
 )
 
 var binPath = fmt.Sprintf("../bin/certstrap-%s-%s-amd64", os.Getenv("BUILD_TAG"), runtime.GOOS)
