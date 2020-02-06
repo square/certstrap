@@ -117,7 +117,7 @@ func (c *revokeCommand) saveRevokedCertificates(cert *x509.Certificate, list []x
 		return fmt.Errorf("could not get %q private key: %v", c.ca, err)
 	}
 
-	crlBytes, err := cert.CreateCRL(rand.Reader, priv.Private, list, time.Now(), time.Now())
+	crlBytes, err := cert.CreateCRL(rand.Reader, priv.Private, list, time.Now(), time.Now().Add(2*8760*time.Hour))
 	if err != nil {
 		return fmt.Errorf("could not create CRL: %v", err)
 	}
