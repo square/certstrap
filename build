@@ -21,3 +21,4 @@ eval $(go env)
 GOARCH=amd64 GOOS=linux go build -ldflags "-X main.release=$BUILD_TAG" -o bin/certstrap-${BUILD_TAG}-linux-amd64 ${REPO_PATH}
 GOARCH=amd64 GOOS=darwin go build -ldflags "-X main.release=$BUILD_TAG" -o bin/certstrap-${BUILD_TAG}-darwin-amd64 ${REPO_PATH}
 GOARCH=amd64 GOOS=windows go build -ldflags "-X main.release=$BUILD_TAG" -o bin/certstrap-${BUILD_TAG}-windows-amd64 ${REPO_PATH}
+GOARCH=$([[ $(uname -p) == "x86_64" ]] && echo "amd64" || echo "s390x") GOOS=linux go build -ldflags "-X main.release=$BUILD_TAG" -o bin/certstrap ${REPO_PATH}
