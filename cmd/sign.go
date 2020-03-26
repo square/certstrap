@@ -118,7 +118,9 @@ func newSignAction(c *cli.Context) {
 	// We punt on checking BasicConstraintsValid and checking MaxPathLen. The goal
 	// is to prevent accidentally creating invalid certificates, not protecting
 	// against malicious input.
-	if !raw_crt.IsCA {
+	// We have run into test certificates which are version 1 and don't have basic
+	// constraints. We can treat these certificates as valid if they are self-signed.
+	if !raw_crt.IsCA && raw_crt.CheckSignatureFrom(raw_crt) != nil {
 		fmt.Fprintln(os.Stderr, "Selected CA certificate is not allowed to sign certificates.")
 		os.Exit(1)
 	}
