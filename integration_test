@@ -4,17 +4,8 @@
 
 source ./build
 
-if [ -z "$PKG" ]; then
-    PKG="cmd depot pkix tests"
-fi
-
 # tests package relies on BUILD_TAG to be exported
 # BUILD_TAG is set by build script
 export BUILD_TAG
 
-# Unit tests
-echo
-for mod in $PKG; do
-  mod_path=$REPO_PATH/$mod
-  go test -v $mod_path
-done
+go test -v -tags=integration ./...
