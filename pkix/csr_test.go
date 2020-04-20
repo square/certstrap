@@ -115,7 +115,7 @@ func TestCertificateSigningRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(csrPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(csrPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 }
@@ -134,7 +134,7 @@ func TestOldStyleCertificateSigningRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(csrPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(csrPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 }

@@ -87,9 +87,9 @@ func (c *Certificate) GetRawCertificate() (*x509.Certificate, error) {
 // GetExpirationDuration gets time duration before expiration
 func (c *Certificate) GetExpirationDuration() time.Duration {
 	if err := c.buildX509Certificate(); err != nil {
-		return time.Unix(0, 0).Sub(time.Now())
+		return time.Until(time.Unix(0, 0))
 	}
-	return c.crt.NotAfter.Sub(time.Now())
+	return time.Until(c.crt.NotAfter)
 }
 
 // CheckAuthority checks the authority of certificate against itself.

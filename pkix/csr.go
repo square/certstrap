@@ -187,6 +187,8 @@ func checkSignature(csr *x509.CertificateRequest, algo x509.SignatureAlgorithm, 
 		return x509.ErrUnsupportedAlgorithm
 	}
 	h := hashType.New()
+
+	// nolint:errcheck
 	h.Write(signed)
 	digest := h.Sum(nil)
 	switch pub := csr.PublicKey.(type) {

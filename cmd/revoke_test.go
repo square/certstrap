@@ -36,7 +36,9 @@ func TestRevokeCmd(t *testing.T) {
 	fs := flag.NewFlagSet("test", flag.ContinueOnError)
 	fs.String("CA", "", "")
 	fs.String("CN", "", "")
-	fs.Parse([]string{"-CA", "ca", "-CN", "cn"})
+	if err := fs.Parse([]string{"-CA", "ca", "-CN", "cn"}); err != nil {
+		t.Fatal("could not parse flags")
+	}
 
 	new(revokeCommand).run(cli.NewContext(nil, fs, nil))
 

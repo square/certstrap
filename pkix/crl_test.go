@@ -69,7 +69,7 @@ func TestCertificateRevocationList(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(crlPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(crlPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 }

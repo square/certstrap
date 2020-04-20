@@ -148,7 +148,7 @@ func TestRSAKeyExport(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(rsaPrivKeyAuthPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(rsaPrivKeyAuthPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 }
@@ -164,7 +164,7 @@ func TestRSAKeyExportEncrypted(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(rsaPrivKeyAuthPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(rsaPrivKeyAuthPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 
@@ -189,7 +189,7 @@ func TestRSAKeyGenerateSubjectKeyID(t *testing.T) {
 		t.Fatal("Failed generating SubjectKeyId:", err)
 	}
 	correctID, _ := base64.StdEncoding.DecodeString(subjectKeyIDOfRSAPubKeyAuthBASE64)
-	if bytes.Compare(id, correctID) != 0 {
+	if !bytes.Equal(id, correctID) {
 		t.Fatal("Failed generating correct SubjectKeyId")
 	}
 }

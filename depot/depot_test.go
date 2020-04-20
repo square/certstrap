@@ -58,7 +58,7 @@ func TestDepotCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed getting file from Depot:", err)
 	}
-	if bytes.Compare(dataRead, []byte(data)) != 0 {
+	if !bytes.Equal(dataRead, []byte(data)) {
 		t.Fatal("Failed getting the previous data")
 	}
 
@@ -66,10 +66,12 @@ func TestDepotCRUD(t *testing.T) {
 		t.Fatal("Expect not to put file into Depot:", err)
 	}
 
-	d.Delete(tag)
+	if err := d.Delete(tag); err != nil {
+		t.Fatal("Failed to delete a tag:", err)
+	}
 
 	if d.Check(tag) {
-		t.Fatal("Failed deleting file from Depot:", err)
+		t.Fatal("Expected the tag to be deleted")
 	}
 }
 
@@ -85,7 +87,9 @@ func TestDepotPutNil(t *testing.T) {
 		t.Fatal("Failed putting file into Depot:", err)
 	}
 
-	d.Delete(tag)
+	if err := d.Delete(tag); err != nil {
+		t.Fatal("Failed to delete a tag:", err)
+	}
 }
 
 func TestDepotCheckFailure(t *testing.T) {
@@ -104,7 +108,9 @@ func TestDepotCheckFailure(t *testing.T) {
 		t.Fatal("Expect not to checking out file with nonexist name")
 	}
 
-	d.Delete(tag)
+	if err := d.Delete(tag); err != nil {
+		t.Fatal("Failed to delete a tag:", err)
+	}
 }
 
 func TestDepotGetFailure(t *testing.T) {
@@ -123,7 +129,9 @@ func TestDepotGetFailure(t *testing.T) {
 		t.Fatal("Expect not to checking out file with nonexist name")
 	}
 
-	d.Delete(tag)
+	if err := d.Delete(tag); err != nil {
+		t.Fatal("Failed to delete a tag:", err)
+	}
 }
 
 func TestDepotList(t *testing.T) {
@@ -158,7 +166,7 @@ func TestDepotGetFile(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed getting file from Depot:", err)
 	}
-	if bytes.Compare(file.Data, []byte(data)) != 0 {
+	if !bytes.Equal(file.Data, []byte(data)) {
 		t.Fatal("Failed getting the previous data")
 	}
 

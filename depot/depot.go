@@ -136,6 +136,7 @@ func (d *FileDepot) Delete(tag *Tag) error {
 func (d *FileDepot) List() []*Tag {
 	var tags = make([]*Tag, 0)
 
+	//nolint:errcheck
 	filepath.Walk(d.dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
