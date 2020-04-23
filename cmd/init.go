@@ -131,6 +131,11 @@ func initAction(c *cli.Context) {
 	var key *pkix.Key
 	if c.IsSet("key") {
 		keyBytes, err := ioutil.ReadFile(c.String("key"))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Read Key error:", err)
+			os.Exit(1)
+		}
+
 		key, err = pkix.NewKeyFromPrivateKeyPEM(keyBytes)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
@@ -163,7 +168,7 @@ func initAction(c *cli.Context) {
 			fmt.Fprintln(os.Stderr, "Print CA certificate error:", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(crtBytes))
+			fmt.Println(string(crtBytes))
 		}
 	}
 

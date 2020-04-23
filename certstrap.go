@@ -50,8 +50,7 @@ func main() {
 		cmd.NewRevokeCommand(),
 	}
 	app.Before = func(c *cli.Context) error {
-		cmd.InitDepot(c.String("depot-path"))
-		return nil
+		return cmd.InitDepot(c.String("depot-path"))
 	}
 
 	if err := app.Run(os.Args); err != nil {

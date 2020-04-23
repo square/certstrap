@@ -112,7 +112,7 @@ func TestCertificateAuthority(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(certAuthPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(certAuthPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 }
@@ -153,7 +153,7 @@ func TestBadCertificate(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed exporting PEM-format bytes:", err)
 	}
-	if bytes.Compare(pemBytes, []byte(badCertAuthPEM)) != 0 {
+	if !bytes.Equal(pemBytes, []byte(badCertAuthPEM)) {
 		t.Fatal("Failed exporting the same PEM-format bytes")
 	}
 }

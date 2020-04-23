@@ -57,7 +57,7 @@ func createPassPhrase() ([]byte, error) {
 		return nil, err
 	}
 
-	if bytes.Compare(pass1, pass2) != 0 {
+	if !bytes.Equal(pass1, pass2) {
 		return nil, errors.New("Passphrases do not match.")
 	}
 	return pass1, nil
