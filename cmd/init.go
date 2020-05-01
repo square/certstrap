@@ -85,6 +85,10 @@ func NewInitCommand() cli.Command {
 				Name:  "stdout",
 				Usage: "Print certificate to stdout in addition to saving file",
 			},
+			cli.StringSliceFlag{
+				Name:  "permit-domain",
+				Usage: "Create a CA restricted to subdomains of this domain (can be specified multiple times)",
+			},
 		},
 		Action: initAction,
 	}
@@ -155,7 +159,7 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"))
+	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)

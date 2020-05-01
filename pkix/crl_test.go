@@ -49,7 +49,7 @@ func TestCreateCertificateRevocationList(t *testing.T) {
 		t.Fatal("Failed creating rsa key:", err)
 	}
 
-	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name")
+	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", nil)
 	if err != nil {
 		t.Fatal("Failed creating certificate authority:", err)
 	}

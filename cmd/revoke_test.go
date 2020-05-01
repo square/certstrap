@@ -75,7 +75,7 @@ func setupCA(t *testing.T, dt depot.Depot) {
 	}
 
 	// create certificate authority
-	caCert, err := pkix.CreateCertificateAuthority(key, caName, time.Now().Add(1*time.Minute), "", "", "", "", caName)
+	caCert, err := pkix.CreateCertificateAuthority(key, caName, time.Now().Add(1*time.Minute), "", "", "", "", caName, nil)
 	if err != nil {
 		t.Fatalf("could not create authority cert: %v", err)
 	}
