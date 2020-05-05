@@ -32,7 +32,12 @@ $ cd certstrap
 $ ./build
 ```
 
-This will generate a binary called `./bin/certstrap`
+This will generate various binary files for different operating systems, the generated binaries are called as 
+
+- `certstrap-dev-[commit-id]-[os]-[architecture]` for instance `certstrap-dev-186cfda8-darwin-amd64`
+
+Select the one which is appropriate to your operating system and change name to `certstrap` under `bin` folder, afterwards follow the steps below. 
+
 
 ### Initialize a new certificate authority:
 
