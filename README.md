@@ -29,15 +29,15 @@ certstrap must be built with Go 1.13+. You can build certstrap from source:
 ```
 $ git clone https://github.com/square/certstrap
 $ cd certstrap
-$ ./build
+$ go build
 ```
 
-This will generate a binary called `./bin/certstrap`
+This will generate a binary called `certstrap` under project root folder.
 
 ### Initialize a new certificate authority:
 
 ```
-$ ./bin/certstrap init --common-name "CertAuth"
+$ ./certstrap init --common-name "CertAuth"
 Created out/CertAuth.key
 Created out/CertAuth.crt
 Created out/CertAuth.crl
@@ -51,7 +51,7 @@ though you can use a pre-existing private PEM key with the `-key` flag.
 If the CN contains spaces, certstrap will change them to underscores in the filename for easier use.  The spaces will be preserved inside the fields of the generated files:
 
 ```
-$ ./bin/certstrap init --common-name "Cert Auth"
+$ ./certstrap init --common-name "Cert Auth"
 Created out/Cert_Auth.key
 Created out/Cert_Auth.crt
 Created out/Cert_Auth.crl
@@ -60,7 +60,7 @@ Created out/Cert_Auth.crl
 ### Request a certificate, including keypair:
 
 ```
-$ ./bin/certstrap request-cert --common-name Alice
+$ ./certstrap request-cert --common-name Alice
 Created out/Alice.key
 Created out/Alice.csr
 ```
@@ -75,7 +75,7 @@ PEM key with the `-key` flag
 ### Sign certificate request of host and generate the certificate:
 
 ```
-$ ./bin/certstrap sign Alice --CA CertAuth
+$ ./certstrap sign Alice --CA CertAuth
 Created out/Alice.crt from out/Alice.csr signed by out/CertAuth.key
 ```
 
