@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"encoding/asn1"
 	"fmt"
 	"os"
 	"strings"
@@ -67,6 +68,10 @@ func NewSignCommand() cli.Command {
 				Name:  "intermediate",
 				Usage: "Whether generated certificate should be a intermediate",
 			},
+			cli.StringFlag{
+				Name:  "extended-key-usage",
+				Usage: "OID of additional Extended Key Usage value to add to the certificate (example: 1.3.6.1.5.5.7.3.1)",
+			},
 		},
 		Action: newSignAction,
 	}
@@ -97,6 +102,17 @@ func newSignAction(c *cli.Context) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid expiry: %s\n", err)
 		os.Exit(1)
+	}
+
+	additionalExtendedKeyUsages := make([]asn1.ObjectIdentifier, 0)
+	additionalExtendedKeyUsage := c.String("extended-key-usage")
+	if additionalExtendedKeyUsage != "" {
+		oid, err := parseOid(additionalExtendedKeyUsage)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Invalid OID value:", err)
+			os.Exit(1)
+		}
+		additionalExtendedKeyUsages = append(additionalExtendedKeyUsages, oid)
 	}
 
 	csr, err := getCertificateSigningRequest(c, d, formattedReqName)
@@ -142,7 +158,7 @@ func newSignAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Building intermediate")
 		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
 	} else {
-		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime)
+		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime, additionalExtendedKeyUsages)
 	}
 
 	if err != nil {
