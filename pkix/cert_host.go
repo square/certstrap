@@ -35,7 +35,7 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 		// **SHOULD** be filled in host info
 		Subject: pkix.Name{},
 		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
-		NotBefore: time.Now().Add(-600).UTC(),
+		NotBefore: time.Now().Add(-10*time.Minute).UTC(),
 		// 10-year lease
 		NotAfter: time.Time{},
 		// Used for certificate signing only
