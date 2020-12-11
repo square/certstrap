@@ -28,7 +28,7 @@ func TestCreateCertificateAuthority(t *testing.T) {
 		t.Fatal("Failed creating rsa key:", err)
 	}
 
-	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"})
+	crt, err := CreateCertificateAuthority(key, nil, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"})
 	if err != nil {
 		t.Fatal("Failed creating certificate authority:", err)
 	}
@@ -42,6 +42,71 @@ func TestCreateCertificateAuthority(t *testing.T) {
 	}
 
 	if rawCrt.Subject.OrganizationalUnit[0] != "OU" {
+		t.Fatal("Failed to verify hostname:", err)
+	}
+
+	if !time.Now().After(rawCrt.NotBefore) {
+		t.Fatal("Failed to be after NotBefore")
+	}
+
+	if !time.Now().Before(rawCrt.NotAfter) {
+		t.Fatal("Failed to be before NotAfter")
+	}
+
+	if crt.crt.PermittedDNSDomainsCritical != true {
+		t.Fatal("Permitted DNS Domains is not set to critical")
+	}
+
+	if len(crt.crt.PermittedDNSDomains) != 1 {
+		t.Fatal("More than one entry found in list of permitted DNS domains")
+	}
+
+	if crt.crt.PermittedDNSDomains[0] != ".example.com" {
+		t.Fatalf("Wrong permitted DNS domain, want %q, got %q", ".example.com", crt.crt.PermittedDNSDomains[0])
+	}
+}
+
+func TestCreateImmediateCertificateAuthority(t *testing.T) {
+	key, err := CreateRSAKey(rsaBits)
+	if err != nil {
+		t.Fatal("Failed creating rsa key:", err)
+	}
+
+	rootCrt, err := CreateCertificateAuthority(key, nil, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"})
+	if err != nil {
+		t.Fatal("Failed creating certificate authority:", err)
+	}
+	rootRawCrt, err := rootCrt.GetRawCertificate()
+	if err != nil {
+		t.Fatal("Failed to get x509.Certificate:", err)
+	}
+
+	key2, err := CreateRSAKey(rsaBits)
+
+	if err != nil {
+		t.Fatal("Failed creating rsa key:", err)
+	}
+
+	rootCA := &RootCA{
+		RootCA: rootRawCrt,
+		PriKey: key.Private,
+	}
+
+	crt, err := CreateCertificateAuthority(key2, rootCA, "OU immediate", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "Immediate CA Name", []string{".example.com"})
+	if err != nil {
+		t.Fatal("Failed creating certificate authority:", err)
+	}
+
+	rawCrt, err := crt.GetRawCertificate()
+	if err != nil {
+		t.Fatal("Failed to get x509.Certificate:", err)
+	}
+
+	if err = rawCrt.CheckSignatureFrom(rootRawCrt); err != nil {
+		t.Fatal("Failed to check signature:", err)
+	}
+
+	if rawCrt.Subject.OrganizationalUnit[0] != "OU immediate" {
 		t.Fatal("Failed to verify hostname:", err)
 	}
 
