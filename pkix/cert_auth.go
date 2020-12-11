@@ -18,15 +18,22 @@
 package pkix
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/x509"
 	"math/big"
 	"time"
 )
 
+// RootCA -
+type RootCA struct {
+	RootCA *x509.Certificate
+	PriKey crypto.PrivateKey
+}
+
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
-func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string) (*Certificate, error) {
+func CreateCertificateAuthority(key *Key, rootCA *RootCA, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
@@ -59,7 +66,15 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 		authTemplate.PermittedDNSDomains = permitDomains
 	}
 
-	crtBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, &authTemplate, key.Public, key.Private)
+	var crtBytes []byte
+
+	if rootCA == nil {
+		crtBytes, err = x509.CreateCertificate(rand.Reader, &authTemplate,
+			&authTemplate, key.Public, key.Private)
+	} else {
+		crtBytes, err = x509.CreateCertificate(rand.Reader, &authTemplate,
+			rootCA.RootCA, key.Public, rootCA.PriKey)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +137,7 @@ func newAuthTemplate() x509.Certificate {
 	return x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
-		NotBefore: time.Now().Add(-10*time.Minute).UTC(),
+		NotBefore: time.Now().Add(-10 * time.Minute).UTC(),
 		NotAfter:  time.Time{},
 		// Used for certificate signing only
 		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,

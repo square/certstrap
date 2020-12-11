@@ -89,6 +89,10 @@ func NewInitCommand() cli.Command {
 				Name:  "permit-domain",
 				Usage: "Create a CA restricted to subdomains of this domain (can be specified multiple times)",
 			},
+			cli.StringFlag{
+				Name:  "root-ca",
+				Usage: "Create a CA with RootCA and RootKey",
+			},
 		},
 		Action: initAction,
 	}
@@ -159,7 +163,49 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"))
+	var rootCA *pkix.RootCA
+
+	if c.IsSet("root-ca") {
+		formattedCAName := strings.Replace(c.String("root-ca"), " ", "_", -1)
+
+		crt, err := depot.GetCertificate(d, formattedCAName)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Get CA certificate error:", err)
+			os.Exit(1)
+		}
+		cert, err := crt.GetRawCertificate()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Get CA certificate error:", err)
+			os.Exit(1)
+		}
+
+		if !cert.IsCA {
+			fmt.Fprintln(os.Stderr, "Selected CA certificate is not allowed to sign certificates.")
+			os.Exit(1)
+		}
+
+		key, err := depot.GetPrivateKey(d, formattedCAName)
+		if err != nil {
+			pass, err := getPassPhrase(c, "CA key")
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Get CA key error: ", err)
+				os.Exit(1)
+			}
+			key, err = depot.GetEncryptedPrivateKey(d, formattedCAName, pass)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Get CA key error: ", err)
+				os.Exit(1)
+			}
+		}
+		rootCA = &pkix.RootCA{}
+		rootCA.RootCA = cert
+		rootCA.PriKey = key.Private
+	}
+
+	crt, err := pkix.CreateCertificateAuthority(key, rootCA,
+		c.String("organizational-unit"), expiresTime, c.String("organization"),
+		c.String("country"), c.String("province"), c.String("locality"),
+		c.String("common-name"), c.StringSlice("permit-domain"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
