@@ -39,7 +39,7 @@ func TestCreateCertificateHost(t *testing.T) {
 		t.Fatal("Failed parsing certificate request from PEM:", err)
 	}
 
-	crt, err := CreateCertificateHost(crtAuth, key, csr, time.Now().AddDate(5000, 0, 0))
+	crt, err := CreateCertificateHost(crtAuth, key, csr, time.Now().AddDate(5000, 0, 0), nil)
 	if err != nil {
 		t.Fatal("Failed creating certificate for host:", err)
 	}

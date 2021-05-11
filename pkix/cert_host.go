@@ -21,13 +21,14 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"math/big"
 	"time"
 )
 
 // CreateCertificateHost creates certificate for host.
 // The arguments include CA certificate, CA key, certificate request.
-func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, extendedKeyUsages []asn1.ObjectIdentifier) (*Certificate, error) {
 	// Build CA based on RFC5280
 	hostTemplate := x509.Certificate{
 		// **SHOULD** be filled in a unique number
@@ -45,7 +46,7 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 			x509.ExtKeyUsageServerAuth,
 			x509.ExtKeyUsageClientAuth,
 		},
-		UnknownExtKeyUsage: nil,
+		UnknownExtKeyUsage: extendedKeyUsages,
 
 		BasicConstraintsValid: false,
 
