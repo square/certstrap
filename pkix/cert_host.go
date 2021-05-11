@@ -28,6 +28,12 @@ import (
 // CreateCertificateHost creates certificate for host.
 // The arguments include CA certificate, CA key, certificate request.
 func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+	return CreateCertificateHostWithExtUsage(crtAuth, keyAuth, csr, proposedExpiry, nil)
+}
+
+// CreateCertificateHostWithExtUsage creates certificate for host with optional key usage extensions.
+// The arguments include CA certificate, CA key, certificate request, and any key usage extensions.
+func CreateCertificateHostWithExtUsage(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, extKeyUsage []x509.ExtKeyUsage) (*Certificate, error) {
 	// Build CA based on RFC5280
 	hostTemplate := x509.Certificate{
 		// **SHOULD** be filled in a unique number
@@ -59,6 +65,10 @@ func CreateCertificateHost(crtAuth *Certificate, keyAuth *Key, csr *CertificateS
 
 		PermittedDNSDomainsCritical: false,
 		PermittedDNSDomains:         nil,
+	}
+
+	if extKeyUsage != nil {
+		hostTemplate.ExtKeyUsage = append(hostTemplate.ExtKeyUsage, extKeyUsage...)
 	}
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)

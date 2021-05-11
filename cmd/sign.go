@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"crypto/x509"
 	"fmt"
 	"os"
 	"strings"
@@ -66,6 +67,10 @@ func NewSignCommand() cli.Command {
 			cli.BoolFlag{
 				Name:  "intermediate",
 				Usage: "Whether generated certificate should be a intermediate",
+			},
+			cli.BoolFlag{
+				Name:  "codesigning",
+				Usage: "Whether generated certificate should include the codeSigning extended key usage extension",
 			},
 		},
 		Action: newSignAction,
@@ -141,6 +146,12 @@ func newSignAction(c *cli.Context) {
 	if c.Bool("intermediate") {
 		fmt.Fprintln(os.Stderr, "Building intermediate")
 		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
+	} else if c.Bool("codesigning") {
+		fmt.Fprintln(os.Stderr, "Including codeSigning extended key usage")
+		extKeyUsage := []x509.ExtKeyUsage{
+			x509.ExtKeyUsageCodeSigning,
+		}
+		crtOut, err = pkix.CreateCertificateHostWithExtUsage(crt, key, csr, expiresTime, extKeyUsage)
 	} else {
 		crtOut, err = pkix.CreateCertificateHost(crt, key, csr, expiresTime)
 	}
