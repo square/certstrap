@@ -63,7 +63,7 @@ func NewCertRequestCommand() cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "organizational-unit, ou",
-				Usage: "Sets the Organizational Unit (OU) field of the certificate",
+				Usage: "Sets the Organizational Unit (OU) values of the certificate",
 			},
 			cli.StringFlag{
 				Name:  "province, st",
@@ -182,7 +182,13 @@ func newCertAction(c *cli.Context) {
 		}
 	}
 
-	csr, err := pkix.CreateCertificateSigningRequest(key, c.String("organizational-unit"), ips, domains, uris, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), name)
+	// split multiple organizational-unit (if any)
+	organizationalUnits := strings.Split(c.String("organizational-unit"), ",")
+	if c.String("organizational-unit") == "" {
+		organizationalUnits = nil
+	}
+
+	csr, err := pkix.CreateCertificateSigningRequest(key, organizationalUnits, ips, domains, uris, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), name)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate request error:", err)
 		os.Exit(1)
