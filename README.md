@@ -1,6 +1,7 @@
 # certstrap
 [![godoc](http://img.shields.io/badge/godoc-certstrap-blue.svg?style=flat)](https://godoc.org/github.com/square/certstrap)
-[![build](https://img.shields.io/travis/square/certstrap.svg?style=flat)](https://travis-ci.org/square/certstrap) [![license](http://img.shields.io/badge/license-apache_2.0-red.svg?style=flat)](https://raw.githubusercontent.com/square/certstrap/master/LICENSE)
+[![CI](https://github.com/square/certstrap/actions/workflows/go.yml/badge.svg)](https://github.com/square/certstrap/actions/workflows/go.yml)
+[![license](http://img.shields.io/badge/license-apache_2.0-red.svg?style=flat)](https://raw.githubusercontent.com/square/certstrap/master/LICENSE)
 
 A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure.  Adapted from etcd-ca.
 
