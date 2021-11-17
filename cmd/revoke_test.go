@@ -113,7 +113,12 @@ func setupCN(t *testing.T, dt depot.Depot) {
 		t.Fatalf("could not get cert: %v", err)
 	}
 
-	cnCert, err := pkix.CreateCertificateHost(caCert, key, csr, time.Now().Add(1*time.Hour))
+	caKey, err := depot.GetPrivateKey(dt, caName)
+	if err != nil {
+		t.Fatalf("could not get CA key: %v", err)
+	}
+
+	cnCert, err := pkix.CreateCertificateHost(caCert, caKey, csr, time.Now().Add(1*time.Hour))
 	if err != nil {
 		t.Fatalf("could not create cert host: %v", err)
 	}
