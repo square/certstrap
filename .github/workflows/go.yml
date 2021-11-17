@@ -40,5 +40,8 @@ jobs:
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v2
+
       with:
-        args: --exclude '(Decrypt|Encrypt)PEMBlock'
+        # Exclude deprecated PEM functions from the linter until
+        # https://github.com/square/certstrap/issues/124 is resolved
+        args: --exclude '(De|En)cryptPEMBlock'
