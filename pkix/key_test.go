@@ -19,8 +19,12 @@ package pkix
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/base64"
+	"encoding/hex"
 	"testing"
 )
 
@@ -191,5 +195,75 @@ func TestRSAKeyGenerateSubjectKeyID(t *testing.T) {
 	correctID, _ := base64.StdEncoding.DecodeString(subjectKeyIDOfRSAPubKeyAuthBASE64)
 	if !bytes.Equal(id, correctID) {
 		t.Fatal("Failed generating correct SubjectKeyId")
+	}
+}
+
+func TestCreateECDSAKey(t *testing.T) {
+	key, err := CreateECDSAKey(elliptic.P256())
+	if err != nil {
+		t.Fatalf("CreateECDSAKey(P256) failed: %v", err)
+	}
+	if _, ok := key.Private.(*ecdsa.PrivateKey); !ok {
+		t.Fatal("CreateECDSAKey did not contain an ecdsa.PrivateKey")
+	}
+}
+
+func TestCreateEd25519Key(t *testing.T) {
+	key, err := CreateEd25519Key()
+	if err != nil {
+		t.Fatalf("CreateEd25519Key failed: %v", err)
+	}
+	if _, ok := key.Private.(ed25519.PrivateKey); !ok {
+		t.Fatal("CreateEd25519Key did not contain an ed25519.PrivateKey")
+	}
+}
+
+func TestECCExportImport(t *testing.T) {
+	tests := []struct {
+		desc string
+		key  *Key
+	}{{
+		desc: "ECDSA P256",
+		key: func() *Key {
+			key, err := CreateECDSAKey(elliptic.P256())
+			if err != nil {
+				t.Fatalf("CreateECDSAKey(P256) failed: %v", err)
+			}
+			return key
+		}(),
+	}, {
+		desc: "Ed25519",
+		key: func() *Key {
+			key, err := CreateEd25519Key()
+			if err != nil {
+				t.Fatalf("CreateEd25519Key() failed: %v", err)
+			}
+			return key
+		}(),
+	}}
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			// Use the SKID to be sure that the SKID before export/import is
+			// the same as after.
+			before, err := GenerateSubjectKeyID(tc.key.Public)
+			if err != nil {
+				t.Fatalf("GenerateSubjectKeyID failed: %v", err)
+			}
+			pem, err := tc.key.ExportPrivate()
+			if err != nil {
+				t.Fatalf("ExportPrivate failed: %v", err)
+			}
+			key, err := NewKeyFromPrivateKeyPEM(pem)
+			if err != nil {
+				t.Fatalf("NewKeyFromPrivateKeyPEM failed: %v", err)
+			}
+			after, err := GenerateSubjectKeyID(key.Public)
+			if err != nil {
+				t.Fatalf("GenerateSubjectKeyID failed: %v", err)
+			}
+			if !bytes.Equal(before, after) {
+				t.Fatalf("SKID before export (%s) does not match SKID after export/import (%s)", hex.EncodeToString(before), hex.EncodeToString(after))
+			}
+		})
 	}
 }

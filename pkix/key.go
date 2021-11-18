@@ -20,6 +20,9 @@ package pkix
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
@@ -27,11 +30,13 @@ import (
 	"encoding/asn1"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"math/big"
 )
 
 const (
-	rsaPrivateKeyPEMBlockType = "RSA PRIVATE KEY"
+	rsaPrivateKeyPEMBlockType   = "RSA PRIVATE KEY"
+	pkcs8PrivateKeyPEMBlockType = "PRIVATE KEY"
 )
 
 // CreateRSAKey creates a new Key using RSA algorithm
@@ -44,10 +49,34 @@ func CreateRSAKey(rsaBits int) (*Key, error) {
 	return NewKey(&priv.PublicKey, priv), nil
 }
 
+// CreateECDSAKey creates a new ECDSA key on the given curve
+func CreateECDSAKey(c elliptic.Curve) (*Key, error) {
+	priv, err := ecdsa.GenerateKey(c, rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewKey(&priv.PublicKey, priv), nil
+}
+
+// CreateEd25519Key creates a new Ed25519 key
+func CreateEd25519Key() (*Key, error) {
+	_, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewKey(priv.Public(), priv), nil
+}
+
 // Key contains a public-private keypair
 type Key struct {
 	Public  crypto.PublicKey
 	Private crypto.PrivateKey
+}
+
+func NewKeyFromSigner(signer crypto.Signer) *Key {
+	return &Key{Public: signer.Public(), Private: signer}
 }
 
 // NewKey returns a new public-private keypair Key type
@@ -61,16 +90,24 @@ func NewKeyFromPrivateKeyPEM(data []byte) (*Key, error) {
 	if pemBlock == nil {
 		return nil, errors.New("cannot find the next PEM formatted block")
 	}
-	if pemBlock.Type != rsaPrivateKeyPEMBlockType || len(pemBlock.Headers) != 0 {
-		return nil, errors.New("unmatched type or headers")
+	var signer crypto.Signer
+	switch pemBlock.Type {
+	case rsaPrivateKeyPEMBlockType:
+		priv, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		signer = priv
+	case pkcs8PrivateKeyPEMBlockType:
+		priv, err := x509.ParsePKCS8PrivateKey(pemBlock.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		signer = priv.(crypto.Signer)
+	default:
+		return nil, fmt.Errorf("unknown PEM block type %q", pemBlock.Type)
 	}
-
-	priv, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewKey(&priv.PublicKey, priv), nil
+	return NewKeyFromSigner(signer), nil
 }
 
 // NewKeyFromEncryptedPrivateKeyPEM inits Key from encrypted PEM-format rsa private key bytes
@@ -96,7 +133,8 @@ func NewKeyFromEncryptedPrivateKeyPEM(data []byte, password []byte) (*Key, error
 	return NewKey(&priv.PublicKey, priv), nil
 }
 
-// ExportPrivate exports PEM-format private key
+// ExportPrivate exports PEM-format private key. RSA keys are exported
+// as PKCS#1, ECDSA and Ed25519 keys are exported as PKCS#8.
 func (k *Key) ExportPrivate() ([]byte, error) {
 	var privPEMBlock *pem.Block
 	switch priv := k.Private.(type) {
@@ -106,8 +144,17 @@ func (k *Key) ExportPrivate() ([]byte, error) {
 			Type:  rsaPrivateKeyPEMBlockType,
 			Bytes: privBytes,
 		}
+	case *ecdsa.PrivateKey, ed25519.PrivateKey:
+		privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
+		if err != nil {
+			return nil, err
+		}
+		privPEMBlock = &pem.Block{
+			Type:  pkcs8PrivateKeyPEMBlockType,
+			Bytes: privBytes,
+		}
 	default:
-		return nil, errors.New("only RSA private key is supported")
+		return nil, fmt.Errorf("unsupported key type %T", k.Private)
 	}
 
 	buf := new(bytes.Buffer)
@@ -159,8 +206,12 @@ func GenerateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+	case *ecdsa.PublicKey:
+		pubBytes = elliptic.Marshal(pub.Curve, pub.X, pub.Y)
+	case ed25519.PublicKey:
+		pubBytes = pub
 	default:
-		return nil, errors.New("only RSA public key is supported")
+		return nil, fmt.Errorf("unsupported key type %T", pub)
 	}
 
 	hash := sha1.Sum(pubBytes)
