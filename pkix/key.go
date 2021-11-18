@@ -18,7 +18,6 @@
 package pkix
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -32,11 +31,14 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
+	"go.step.sm/crypto/pemutil"
 )
 
 const (
-	rsaPrivateKeyPEMBlockType   = "RSA PRIVATE KEY"
-	pkcs8PrivateKeyPEMBlockType = "PRIVATE KEY"
+	rsaPrivateKeyPEMBlockType            = "RSA PRIVATE KEY"
+	pkcs8PrivateKeyPEMBlockType          = "PRIVATE KEY"
+	encryptedPKCS8PrivateKeyPEMBLockType = "ENCRYPTED PRIVATE KEY"
 )
 
 // CreateRSAKey creates a new Key using RSA algorithm
@@ -110,27 +112,39 @@ func NewKeyFromPrivateKeyPEM(data []byte) (*Key, error) {
 	return NewKeyFromSigner(signer), nil
 }
 
-// NewKeyFromEncryptedPrivateKeyPEM inits Key from encrypted PEM-format rsa private key bytes
+// NewKeyFromEncryptedPrivateKeyPEM inits Key from encrypted PEM-format private key bytes
 func NewKeyFromEncryptedPrivateKeyPEM(data []byte, password []byte) (*Key, error) {
 	pemBlock, _ := pem.Decode(data)
 	if pemBlock == nil {
 		return nil, errors.New("cannot find the next PEM formatted block")
 	}
-	if pemBlock.Type != rsaPrivateKeyPEMBlockType {
-		return nil, errors.New("unmatched type or headers")
+	var signer crypto.Signer
+	switch pemBlock.Type {
+	case rsaPrivateKeyPEMBlockType:
+		b, err := x509.DecryptPEMBlock(pemBlock, password)
+		if err != nil {
+			return nil, err
+		}
+		priv, err := x509.ParsePKCS1PrivateKey(b)
+		if err != nil {
+			return nil, err
+		}
+		signer = priv
+	case encryptedPKCS8PrivateKeyPEMBLockType:
+		b, err := pemutil.DecryptPKCS8PrivateKey(pemBlock.Bytes, password)
+		if err != nil {
+			return nil, err
+		}
+		priv, err := x509.ParsePKCS8PrivateKey(b)
+		if err != nil {
+			return nil, err
+		}
+		signer = priv.(crypto.Signer)
+	default:
+		return nil, fmt.Errorf("unsupported PEM block type %q", pemBlock.Type)
 	}
 
-	b, err := x509.DecryptPEMBlock(pemBlock, password)
-	if err != nil {
-		return nil, err
-	}
-
-	priv, err := x509.ParsePKCS1PrivateKey(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewKey(&priv.PublicKey, priv), nil
+	return NewKeyFromSigner(signer), nil
 }
 
 // ExportPrivate exports PEM-format private key. RSA keys are exported
@@ -157,33 +171,31 @@ func (k *Key) ExportPrivate() ([]byte, error) {
 		return nil, fmt.Errorf("unsupported key type %T", k.Private)
 	}
 
-	buf := new(bytes.Buffer)
-	if err := pem.Encode(buf, privPEMBlock); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return pem.EncodeToMemory(privPEMBlock), nil
 }
 
 // ExportEncryptedPrivate exports encrypted PEM-format private key
 func (k *Key) ExportEncryptedPrivate(password []byte) ([]byte, error) {
-	var privBytes []byte
+	var privPEMBlock *pem.Block
+	var err error
 	switch priv := k.Private.(type) {
 	case *rsa.PrivateKey:
-		privBytes = x509.MarshalPKCS1PrivateKey(priv)
+		privBytes := x509.MarshalPKCS1PrivateKey(priv)
+		privPEMBlock, err = x509.EncryptPEMBlock(rand.Reader, rsaPrivateKeyPEMBlockType, privBytes, password, x509.PEMCipher3DES)
+	case *ecdsa.PrivateKey, ed25519.PrivateKey:
+		privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
+		if err != nil {
+			return nil, err
+		}
+		privPEMBlock, err = pemutil.EncryptPKCS8PrivateKey(rand.Reader, privBytes, password, x509.PEMCipherAES256)
 	default:
-		return nil, errors.New("only RSA private key is supported")
+		return nil, fmt.Errorf("unsupported key type %T", k.Private)
 	}
-
-	privPEMBlock, err := x509.EncryptPEMBlock(rand.Reader, rsaPrivateKeyPEMBlockType, privBytes, password, x509.PEMCipher3DES)
 	if err != nil {
 		return nil, err
 	}
 
-	buf := new(bytes.Buffer)
-	if err := pem.Encode(buf, privPEMBlock); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return pem.EncodeToMemory(privPEMBlock), nil
 }
 
 // rsaPublicKey reflects the ASN.1 structure of a PKCS#1 public key.
