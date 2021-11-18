@@ -177,22 +177,26 @@ func (k *Key) ExportPrivate() ([]byte, error) {
 // ExportEncryptedPrivate exports encrypted PEM-format private key
 func (k *Key) ExportEncryptedPrivate(password []byte) ([]byte, error) {
 	var privPEMBlock *pem.Block
-	var err error
 	switch priv := k.Private.(type) {
 	case *rsa.PrivateKey:
 		privBytes := x509.MarshalPKCS1PrivateKey(priv)
-		privPEMBlock, err = x509.EncryptPEMBlock(rand.Reader, rsaPrivateKeyPEMBlockType, privBytes, password, x509.PEMCipher3DES)
+		block, err := x509.EncryptPEMBlock(rand.Reader, rsaPrivateKeyPEMBlockType, privBytes, password, x509.PEMCipher3DES)
+		if err != nil {
+			return nil, err
+		}
+		privPEMBlock = block
 	case *ecdsa.PrivateKey, ed25519.PrivateKey:
 		privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 		if err != nil {
 			return nil, err
 		}
-		privPEMBlock, err = pemutil.EncryptPKCS8PrivateKey(rand.Reader, privBytes, password, x509.PEMCipherAES256)
+		block, err := pemutil.EncryptPKCS8PrivateKey(rand.Reader, privBytes, password, x509.PEMCipherAES256)
+		if err != nil {
+			return nil, err
+		}
+		privPEMBlock = block
 	default:
 		return nil, fmt.Errorf("unsupported key type %T", k.Private)
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	return pem.EncodeToMemory(privPEMBlock), nil
