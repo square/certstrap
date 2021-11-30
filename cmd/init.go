@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"crypto/elliptic"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -43,6 +44,10 @@ func NewInitCommand() cli.Command {
 				Name:  "key-bits",
 				Value: 4096,
 				Usage: "Size (in bits) of RSA keypair to generate (example: 4096)",
+			},
+			cli.StringFlag{
+				Name:  "key-curve",
+				Usage: "Elliptic curve name. Must be one of P-224, P-256, P-384, P-521, or Ed25519.",
 			},
 			cli.IntFlag{
 				Name:   "years",
@@ -94,6 +99,22 @@ func NewInitCommand() cli.Command {
 	}
 }
 
+func createKeyOnCurve(name string) (*pkix.Key, error) {
+	switch name {
+	case "P-224":
+		return pkix.CreateECDSAKey(elliptic.P224())
+	case "P-256":
+		return pkix.CreateECDSAKey(elliptic.P256())
+	case "P-384":
+		return pkix.CreateECDSAKey(elliptic.P384())
+	case "P-521":
+		return pkix.CreateECDSAKey(elliptic.P521())
+	case "Ed25519":
+		return pkix.CreateEd25519Key()
+	}
+	return nil, fmt.Errorf("unknown curve %q", name)
+}
+
 func initAction(c *cli.Context) {
 	if !c.IsSet("common-name") {
 		fmt.Println("Must supply Common Name for CA")
@@ -133,7 +154,8 @@ func initAction(c *cli.Context) {
 	}
 
 	var key *pkix.Key
-	if c.IsSet("key") {
+	switch {
+	case c.IsSet("key"):
 		keyBytes, err := ioutil.ReadFile(c.String("key"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
@@ -146,7 +168,19 @@ func initAction(c *cli.Context) {
 			os.Exit(1)
 		}
 		fmt.Printf("Read %s\n", c.String("key"))
-	} else {
+	case c.IsSet("key-curve"):
+		curve := c.String("key-curve")
+		key, err = createKeyOnCurve(curve)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Create %s Key error: %v", curve, err)
+			os.Exit(1)
+		}
+		if len(passphrase) > 0 {
+			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, formattedName)
+		} else {
+			fmt.Printf("Created %s/%s.key\n", depotDir, formattedName)
+		}
+	default:
 		key, err = pkix.CreateRSAKey(c.Int("key-bits"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Create RSA Key error:", err)
