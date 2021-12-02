@@ -47,7 +47,7 @@ func NewCertRequestCommand() cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "curve",
-				Usage: "Elliptic curve name. Must be one of P-224, P-256, P-384, P-521, or Ed25519.",
+				Usage: fmt.Sprintf("Elliptic curve name. Must be one of %s.", supportedCurves()),
 			},
 			cli.StringFlag{
 				Name:  "organization, o",

@@ -18,7 +18,6 @@
 package cmd
 
 import (
-	"crypto/elliptic"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -47,7 +46,7 @@ func NewInitCommand() cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "curve",
-				Usage: "Elliptic curve name. Must be one of P-224, P-256, P-384, P-521, or Ed25519.",
+				Usage: fmt.Sprintf("Elliptic curve name. Must be one of %s.", supportedCurves()),
 			},
 			cli.IntFlag{
 				Name:   "years",
@@ -97,22 +96,6 @@ func NewInitCommand() cli.Command {
 		},
 		Action: initAction,
 	}
-}
-
-func createKeyOnCurve(name string) (*pkix.Key, error) {
-	switch name {
-	case "P-224":
-		return pkix.CreateECDSAKey(elliptic.P224())
-	case "P-256":
-		return pkix.CreateECDSAKey(elliptic.P256())
-	case "P-384":
-		return pkix.CreateECDSAKey(elliptic.P384())
-	case "P-521":
-		return pkix.CreateECDSAKey(elliptic.P521())
-	case "Ed25519":
-		return pkix.CreateEd25519Key()
-	}
-	return nil, fmt.Errorf("unknown curve %q", name)
 }
 
 func initAction(c *cli.Context) {
