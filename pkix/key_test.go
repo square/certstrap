@@ -19,8 +19,12 @@ package pkix
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/base64"
+	"encoding/hex"
 	"testing"
 )
 
@@ -88,6 +92,33 @@ VtqebOpqR2DBWyIv2JRuUk1ABjN4H2ByHOPKs8jiraCAKvWK7S+7OX7gDypwkCI9
 wipI15zxSvuOidoO1DptZEj/RXYU45exY1LM2hXqQ2+AQ6MB+EvEMDk/qmmEeICS
 chlXS8rRhHtP+dYo4waeWbUCthn0NcB5pyI8Nkv4WFI=
 -----END RSA PRIVATE KEY-----
+`
+	p256PrivKeyPEM = `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxMg/54VIbzxz212o
+g9ud2XLplNaPqi1jqadVuFXPxMOhRANCAARiNZ2xp1llazZyUjvjnsvRknFbUI9r
+f8I43034ustdwkvgh+7TfZGeEHNmOwQi9RInxIAReFx2gUARYn2f1qnj
+-----END PRIVATE KEY-----
+`
+	// Encrypted PKCS8 generated with openssl to ensure comaptibility.
+	p256EncryptedPrivKeyPEM = `-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIHeMEkGCSqGSIb3DQEFDTA8MBsGCSqGSIb3DQEFDDAOBAgQo5EVNe/KkgICCAAw
+HQYJYIZIAWUDBAEqBBBYCWWlK2TXfGNAf/dNVsUdBIGQP5aHz3sKokKkrLLKrxNv
+t/HFn59QJPaagQm1IlK0LfwV6RMrKuJjAJ+bSFZit9/2iCLQw9yekyNbzcAuhihz
+4CCMvvHCigtATIby3Bv/OhnHnpcsF4HVkXd1h0rKaV0xDK6xWYZ6d7KS2NJtaJAF
+DBi43A9dlURMcw3/CYJ3jgzJGAP8nCm4omyNckloBaAa
+-----END ENCRYPTED PRIVATE KEY-----
+`
+	ed25519PrivKeyPEM = `-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEINhpLppsFdDXk0P4mMq5kBHntPJGaaG27C1ZZYJCoWL3
+-----END PRIVATE KEY-----
+`
+	// Encrypted PKCS8 generated with openssl to ensure comaptibility.
+	ed25519EncryptedPrivKeyPEM = `-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIGbMFcGCSqGSIb3DQEFDTBKMCkGCSqGSIb3DQEFDDAcBAgaJGiyG0Hd8wICCAAw
+DAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEAKxHGl8qfK3DM9FKMWQAHUEQKu6
+TL8589WqvDu8nE8ZrFwibbR9eMloekr89lqs1vJd7KJngUtXbW3XL2dtdSXzCGYF
+T4rZH6EqxXGdvvmo1pw=
+-----END ENCRYPTED PRIVATE KEY-----
 `
 	password      = "123456"
 	wrongPassword = "654321"
@@ -191,5 +222,127 @@ func TestRSAKeyGenerateSubjectKeyID(t *testing.T) {
 	correctID, _ := base64.StdEncoding.DecodeString(subjectKeyIDOfRSAPubKeyAuthBASE64)
 	if !bytes.Equal(id, correctID) {
 		t.Fatal("Failed generating correct SubjectKeyId")
+	}
+}
+
+func TestCreateECDSAKey(t *testing.T) {
+	key, err := CreateECDSAKey(elliptic.P256())
+	if err != nil {
+		t.Fatalf("CreateECDSAKey(P256) failed: %v", err)
+	}
+	if _, ok := key.Private.(*ecdsa.PrivateKey); !ok {
+		t.Fatal("CreateECDSAKey did not contain an ecdsa.PrivateKey")
+	}
+}
+
+func TestCreateEd25519Key(t *testing.T) {
+	key, err := CreateEd25519Key()
+	if err != nil {
+		t.Fatalf("CreateEd25519Key failed: %v", err)
+	}
+	if _, ok := key.Private.(ed25519.PrivateKey); !ok {
+		t.Fatal("CreateEd25519Key did not contain an ed25519.PrivateKey")
+	}
+}
+
+func TestECCExportImport(t *testing.T) {
+	tests := []struct {
+		desc string
+		key  *Key
+	}{{
+		desc: "ECDSA P256",
+		key: func() *Key {
+			key, err := CreateECDSAKey(elliptic.P256())
+			if err != nil {
+				t.Fatalf("CreateECDSAKey(P256) failed: %v", err)
+			}
+			return key
+		}(),
+	}, {
+		desc: "Ed25519",
+		key: func() *Key {
+			key, err := CreateEd25519Key()
+			if err != nil {
+				t.Fatalf("CreateEd25519Key() failed: %v", err)
+			}
+			return key
+		}(),
+	}}
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			// Use the SKID to be sure that the key is the same post-import.
+			before, err := GenerateSubjectKeyID(tc.key.Public)
+			if err != nil {
+				t.Fatalf("GenerateSubjectKeyID failed: %v", err)
+			}
+			pem, err := tc.key.ExportPrivate()
+			if err != nil {
+				t.Fatalf("ExportPrivate failed: %v", err)
+			}
+			key, err := NewKeyFromPrivateKeyPEM(pem)
+			if err != nil {
+				t.Fatalf("NewKeyFromPrivateKeyPEM failed: %v", err)
+			}
+			after, err := GenerateSubjectKeyID(key.Public)
+			if err != nil {
+				t.Fatalf("GenerateSubjectKeyID failed: %v", err)
+			}
+			if !bytes.Equal(before, after) {
+				t.Fatalf("SKID before export (%s) does not match SKID after export/import (%s)", hex.EncodeToString(before), hex.EncodeToString(after))
+			}
+		})
+	}
+}
+
+func TestEncryptedECCImportExport(t *testing.T) {
+	tests := []struct {
+		name         string
+		pem          string
+		encryptedPEM string
+	}{{
+		name:         "ECDSA P256",
+		pem:          p256PrivKeyPEM,
+		encryptedPEM: p256EncryptedPrivKeyPEM,
+	}, {
+		name:         "Ed25519",
+		pem:          ed25519PrivKeyPEM,
+		encryptedPEM: ed25519EncryptedPrivKeyPEM,
+	}}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// 1. Decrypt the openssl-encrypted PKCS8.
+			priv, err := NewKeyFromEncryptedPrivateKeyPEM([]byte(tc.encryptedPEM), []byte(password))
+			if err != nil {
+				t.Fatalf("NewKeyFromEncryptedPrivateKeyPEM failed: %v", err)
+			}
+			// 2. Export the decrypted PEM to compare with the expected PEM.
+			pem, err := priv.ExportPrivate()
+			if err != nil {
+				t.Fatalf("ExportPrivate failed: %v", err)
+			}
+			if tc.pem != string(pem) {
+				t.Fatalf("Want pem:\n%sgot:\n%s", tc.pem, pem)
+			}
+			// 3. Ensure that Decrypt(Encrypt(pem)) == pem.
+			encryptedPEM, err := priv.ExportEncryptedPrivate([]byte(password))
+			if err != nil {
+				t.Fatalf("ExportEncryptedPrivate failed: %v", err)
+			}
+			priv, err = NewKeyFromEncryptedPrivateKeyPEM([]byte(encryptedPEM), []byte(password))
+			if err != nil {
+				t.Fatalf("NewKeyFromEncryptedPrivateKeyPEM failed: %v", err)
+			}
+			decryptedPEM, err := priv.ExportPrivate()
+			if err != nil {
+				t.Fatalf("ExportPrivate failed: %v", err)
+			}
+			if !bytes.Equal(pem, decryptedPEM) {
+				t.Fatalf("Want pem:\n%sgot:\n%s", pem, decryptedPEM)
+			}
+			// 4. Sanity check to ensure that the wrong password fails to decrypt...
+			if _, err := NewKeyFromEncryptedPrivateKeyPEM([]byte(encryptedPEM), []byte(wrongPassword)); err == nil {
+				t.Fatalf("NewKeyFromEncryptedPrivateKeyPEM(wrongPassword) succeeeded, expected failure")
+			}
+		})
 	}
 }
