@@ -46,6 +46,10 @@ func NewCertRequestCommand() cli.Command {
 				Usage: "Size (in bits) of RSA keypair to generate (example: 4096)",
 			},
 			cli.StringFlag{
+				Name:  "curve",
+				Usage: fmt.Sprintf("Elliptic curve name. Must be one of %s.", supportedCurves()),
+			},
+			cli.StringFlag{
 				Name:  "organization, o",
 				Usage: "Sets the Organization (O) field of the certificate",
 			},
@@ -155,7 +159,8 @@ func newCertAction(c *cli.Context) {
 	// generate new key if one doesn't exist already
 	var key *pkix.Key
 	keyFilepath := fileName(c, "key", depotDir, formattedName, "key")
-	if c.IsSet("key") && fileExists(c.String("key")) {
+	switch {
+	case c.IsSet("key") && fileExists(c.String("key")):
 		keyBytes, err := ioutil.ReadFile(c.String("key"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
@@ -168,13 +173,24 @@ func newCertAction(c *cli.Context) {
 			os.Exit(1)
 		}
 		fmt.Printf("Read %s\n", keyFilepath)
-	} else {
+	case c.IsSet("curve"):
+		curve := c.String("curve")
+		key, err = createKeyOnCurve(curve)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Create %s Key error: %v", curve, err)
+			os.Exit(1)
+		}
+		if len(passphrase) > 0 {
+			fmt.Printf("Created %s (encrypted by passphrase)\n", keyFilepath)
+		} else {
+			fmt.Printf("Created %s\n", keyFilepath)
+		}
+	default:
 		key, err = pkix.CreateRSAKey(c.Int("key-bits"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Create RSA Key error:", err)
 			os.Exit(1)
 		}
-		keyFilepath := fileName(c, "key", depotDir, formattedName, "key")
 		if len(passphrase) > 0 {
 			fmt.Printf("Created %s (encrypted by passphrase)\n", keyFilepath)
 		} else {

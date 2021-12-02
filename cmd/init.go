@@ -44,6 +44,10 @@ func NewInitCommand() cli.Command {
 				Value: 4096,
 				Usage: "Size (in bits) of RSA keypair to generate (example: 4096)",
 			},
+			cli.StringFlag{
+				Name:  "curve",
+				Usage: fmt.Sprintf("Elliptic curve name. Must be one of %s.", supportedCurves()),
+			},
 			cli.IntFlag{
 				Name:   "years",
 				Hidden: true,
@@ -133,7 +137,8 @@ func initAction(c *cli.Context) {
 	}
 
 	var key *pkix.Key
-	if c.IsSet("key") {
+	switch {
+	case c.IsSet("key"):
 		keyBytes, err := ioutil.ReadFile(c.String("key"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
@@ -146,7 +151,19 @@ func initAction(c *cli.Context) {
 			os.Exit(1)
 		}
 		fmt.Printf("Read %s\n", c.String("key"))
-	} else {
+	case c.IsSet("curve"):
+		curve := c.String("curve")
+		key, err = createKeyOnCurve(curve)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Create %s Key error: %v\n", curve, err)
+			os.Exit(1)
+		}
+		if len(passphrase) > 0 {
+			fmt.Printf("Created %s/%s.key (encrypted by passphrase)\n", depotDir, formattedName)
+		} else {
+			fmt.Printf("Created %s/%s.key\n", depotDir, formattedName)
+		}
+	default:
 		key, err = pkix.CreateRSAKey(c.Int("key-bits"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Create RSA Key error:", err)
