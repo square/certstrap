@@ -128,8 +128,10 @@ func newCertAction(c *cli.Context) {
 		name = c.String("common-name")
 	case len(domains) != 0:
 		name = domains[0]
+	case len(uris) != 0:
+		name = uris[0].String()
 	default:
-		fmt.Fprintln(os.Stderr, "Must provide Common Name or domain")
+		fmt.Fprintln(os.Stderr, "Must provide Common Name, domain, or URI")
 		os.Exit(1)
 	}
 
@@ -215,7 +217,7 @@ func newCertAction(c *cli.Context) {
 }
 
 func formatName(name string) string {
-	var filenameAcceptable, err = regexp.Compile("[^a-zA-Z0-9._-]")
+	var filenameAcceptable, err = regexp.Compile("[^a-zA-Z0-9._-]+")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error compiling regex:", err)
 		os.Exit(1)
