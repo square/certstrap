@@ -155,7 +155,7 @@ func initAction(c *cli.Context) {
 		curve := c.String("curve")
 		key, err = createKeyOnCurve(curve)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Create %s Key error: %v", curve, err)
+			fmt.Fprintf(os.Stderr, "Create %s Key error: %v\n", curve, err)
 			os.Exit(1)
 		}
 		if len(passphrase) > 0 {
