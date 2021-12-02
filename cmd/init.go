@@ -46,7 +46,7 @@ func NewInitCommand() cli.Command {
 				Usage: "Size (in bits) of RSA keypair to generate (example: 4096)",
 			},
 			cli.StringFlag{
-				Name:  "key-curve",
+				Name:  "curve",
 				Usage: "Elliptic curve name. Must be one of P-224, P-256, P-384, P-521, or Ed25519.",
 			},
 			cli.IntFlag{
@@ -168,8 +168,8 @@ func initAction(c *cli.Context) {
 			os.Exit(1)
 		}
 		fmt.Printf("Read %s\n", c.String("key"))
-	case c.IsSet("key-curve"):
-		curve := c.String("key-curve")
+	case c.IsSet("curve"):
+		curve := c.String("curve")
 		key, err = createKeyOnCurve(curve)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Create %s Key error: %v", curve, err)

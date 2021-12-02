@@ -30,7 +30,7 @@ import (
 )
 
 // TestWorkflow runs certstrap in the normal workflow
-// and traverses all commands
+// and traverses all commands and all key algorithms.
 func TestWorkflow(t *testing.T) {
 	tests := []struct {
 		desc     string
@@ -41,15 +41,15 @@ func TestWorkflow(t *testing.T) {
 		expected: x509.RSA,
 	}, {
 		desc:     "P-256",
-		keySpec:  []string{"--key-curve", "P-256"},
+		keySpec:  []string{"--curve", "P-256"},
 		expected: x509.ECDSA,
 	}, {
 		desc:     "P-521",
-		keySpec:  []string{"--key-curve", "P-521"},
+		keySpec:  []string{"--curve", "P-521"},
 		expected: x509.ECDSA,
 	}, {
 		desc:     "Ed25519",
-		keySpec:  []string{"--key-curve", "Ed25519"},
+		keySpec:  []string{"--curve", "Ed25519"},
 		expected: x509.Ed25519,
 	}, {
 		desc:     "RSA 2048",
@@ -110,7 +110,7 @@ func TestWorkflow(t *testing.T) {
 				t.Fatalf("URI not reflected in cert")
 			}
 			if cert.PublicKeyAlgorithm != tc.expected {
-				t.Fatalf("Expected public key algorithm %d, got %d", tc.expected, cert.PublicKeyAlgorithm)
+				t.Fatalf("Public key algorithm = %d, want %d", cert.PublicKeyAlgorithm, tc.expected)
 			}
 		})
 	}
