@@ -78,7 +78,7 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 
 // CreateIntermediateCertificateAuthority creates an intermediate
 // CA certificate signed by the given authority.
-func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, pathlen int) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -87,7 +87,11 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 		return nil, err
 	}
 	authTemplate.SerialNumber.Set(serialNumber)
-	authTemplate.MaxPathLenZero = false
+
+	if pathlen > 0 {
+		authTemplate.MaxPathLen = pathlen
+		authTemplate.MaxPathLenZero = false
+	}
 
 	rawCsr, err := csr.GetRawCertificateSigningRequest()
 	if err != nil {
