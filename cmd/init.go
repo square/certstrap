@@ -93,6 +93,15 @@ func NewInitCommand() cli.Command {
 				Name:  "permit-domain",
 				Usage: "Create a CA restricted to subdomains of this domain (can be specified multiple times)",
 			},
+			cli.IntFlag{
+				Name:  "path-length",
+				Value: 0,
+				Usage: "Maximum number of non-self-issued intermediate certificates that may follow this CA certificate in a valid certification path",
+			},
+			cli.BoolFlag{
+				Name:  "exclude-path-length",
+				Usage: "Exclude 'Path Length Constraint' from this CA certificate",
+			},
 		},
 		Action: initAction,
 	}
@@ -108,6 +117,11 @@ func initAction(c *cli.Context) {
 
 	if depot.CheckCertificate(d, formattedName) || depot.CheckPrivateKey(d, formattedName) {
 		fmt.Fprintf(os.Stderr, "CA with specified name \"%s\" already exists!\n", formattedName)
+		os.Exit(1)
+	}
+
+	if c.IsSet("path-length") && c.IsSet("exclude-path-length") {
+		fmt.Fprintf(os.Stderr, "The \"path-length\" and \"exclude-path-length\" flags cannot be used together!\n")
 		os.Exit(1)
 	}
 
@@ -176,7 +190,7 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"))
+	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"), c.Int("path-length"), c.Bool("exclude-path-length"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)

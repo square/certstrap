@@ -26,7 +26,7 @@ import (
 
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
-func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string) (*Certificate, error) {
+func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string, pathlen int, excludePathlen bool) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
@@ -59,6 +59,15 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 		authTemplate.PermittedDNSDomains = permitDomains
 	}
 
+	if !excludePathlen {
+		if pathlen > 0 {
+			authTemplate.MaxPathLen = pathlen
+			authTemplate.MaxPathLenZero = false
+		}
+	} else {
+		authTemplate.MaxPathLenZero = false
+	}
+
 	crtBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, &authTemplate, key.Public, key.Private)
 	if err != nil {
 		return nil, err
@@ -69,7 +78,7 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 
 // CreateIntermediateCertificateAuthority creates an intermediate
 // CA certificate signed by the given authority.
-func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, pathlen int) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -78,7 +87,11 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 		return nil, err
 	}
 	authTemplate.SerialNumber.Set(serialNumber)
-	authTemplate.MaxPathLenZero = false
+
+	if pathlen > 0 {
+		authTemplate.MaxPathLen = pathlen
+		authTemplate.MaxPathLenZero = false
+	}
 
 	rawCsr, err := csr.GetRawCertificateSigningRequest()
 	if err != nil {
