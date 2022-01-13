@@ -100,7 +100,7 @@ func NewInitCommand() cli.Command {
 			},
 			cli.BoolFlag{
 				Name:  "exclude-path-length",
-				Usage: "Exclude 'Path Length Constraint' from this CA certificate allowing this CA to issue intermediate certificates",
+				Usage: "Exclude 'Path Length Constraint' from this CA certificate",
 			},
 		},
 		Action: initAction,
