@@ -28,7 +28,7 @@ func TestCreateCertificateAuthority(t *testing.T) {
 		t.Fatal("Failed creating rsa key:", err)
 	}
 
-	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"})
+	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"}, 0)
 	if err != nil {
 		t.Fatal("Failed creating certificate authority:", err)
 	}

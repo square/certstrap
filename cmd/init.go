@@ -93,6 +93,11 @@ func NewInitCommand() cli.Command {
 				Name:  "permit-domain",
 				Usage: "Create a CA restricted to subdomains of this domain (can be specified multiple times)",
 			},
+			cli.IntFlag{
+				Name:  "path-length",
+				Value: 0,
+				Usage: "Maximum number of non-self-issued intermediate certificates that may follow this CA certificate in a valid certification path",
+			},
 		},
 		Action: initAction,
 	}
@@ -176,7 +181,7 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"))
+	crt, err := pkix.CreateCertificateAuthority(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"), c.Int("path-length"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
 		os.Exit(1)
