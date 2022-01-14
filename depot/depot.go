@@ -113,8 +113,8 @@ func (d *FileDepot) check(tag *Tag) error {
 	if err != nil {
 		return err
 	}
-	if ^fi.Mode()&tag.perm != 0 {
-		return errors.New("permission denied")
+	if fi.Mode()&^tag.perm != 0 {
+		return errors.New("unprotected key file `" + tag.name + "': file permissions too open")
 	}
 	return nil
 }

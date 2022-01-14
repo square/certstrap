@@ -31,8 +31,8 @@ const (
 )
 
 const (
-	BranchPerm = 0440
-	LeafPerm   = 0444
+	BranchPerm = 0400
+	LeafPerm   = 0400
 )
 
 // CrtTag returns a tag corresponding to a certificate
