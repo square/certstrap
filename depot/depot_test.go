@@ -31,7 +31,7 @@ const (
 var (
 	tag       = &Tag{"host.pem", 0600}
 	tag2      = &Tag{"host2.pem", 0600}
-	wrongTag  = &Tag{"host.pem", 0666}
+	wrongTag  = &Tag{"host.pem", 0400}
 	wrongTag2 = &Tag{"host.pem2", 0600}
 )
 
@@ -101,7 +101,7 @@ func TestDepotCheckFailure(t *testing.T) {
 	}
 
 	if d.Check(wrongTag) {
-		t.Fatal("Expect not to checking out file with insufficient permission")
+		t.Fatal("Expect not to checking out unprotected file")
 	}
 
 	if d.Check(wrongTag2) {
@@ -122,7 +122,7 @@ func TestDepotGetFailure(t *testing.T) {
 	}
 
 	if _, err := d.Get(wrongTag); err == nil {
-		t.Fatal("Expect not to checking out file with insufficient permission")
+		t.Fatal("Expect not to checking out unprotected file")
 	}
 
 	if _, err := d.Get(wrongTag2); err == nil {

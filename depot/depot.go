@@ -101,7 +101,7 @@ func (d *FileDepot) Put(tag *Tag, data []byte) error {
 // Check returns whether the file at the tag location exists and has the correct permissions
 func (d *FileDepot) Check(tag *Tag) bool {
 	name := d.path(tag.name)
-	if fi, err := os.Stat(name); err == nil && ^fi.Mode()&tag.perm == 0 {
+	if fi, err := os.Stat(name); err == nil && fi.Mode()&^tag.perm == 0 {
 		return true
 	}
 	return false
