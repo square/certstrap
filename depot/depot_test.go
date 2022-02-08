@@ -19,6 +19,7 @@ package depot
 
 import (
 	"bytes"
+	"io/fs"
 	"os"
 	"testing"
 )
@@ -29,10 +30,8 @@ const (
 )
 
 var (
-	tag       = &Tag{"host.pem", 0600}
-	tag2      = &Tag{"host2.pem", 0600}
-	wrongTag  = &Tag{"host.pem", 0666}
-	wrongTag2 = &Tag{"host.pem2", 0600}
+	tag  = &Tag{"host.pem", 0600}
+	tag2 = &Tag{"host2.pem", 0600}
 )
 
 func getDepot(t *testing.T) *FileDepot {
@@ -96,19 +95,20 @@ func TestDepotCheckFailure(t *testing.T) {
 	d := getDepot(t)
 	defer os.RemoveAll(dir)
 
-	if err := d.Put(tag, []byte(data)); err != nil {
+	if err := d.Put(&Tag{"host.pem", 0600}, []byte(data)); err != nil {
 		t.Fatal("Failed putting file into Depot:", err)
 	}
 
-	if d.Check(wrongTag) {
-		t.Fatal("Expect not to checking out file with insufficient permission")
+	// host.pem was created with mode 0600, so the permission check for 0400 should fail...
+	if d.Check(&Tag{"host.pem", 0400}) {
+		t.Fatal("Expected check permissions failure")
 	}
 
-	if d.Check(wrongTag2) {
-		t.Fatal("Expect not to checking out file with nonexist name")
+	if d.Check(&Tag{"does-not-exist.pem", 0777}) {
+		t.Fatal("Expect check failure for non-existent file")
 	}
 
-	if err := d.Delete(tag); err != nil {
+	if err := d.Delete(&Tag{"host.pem", 0777}); err != nil {
 		t.Fatal("Failed to delete a tag:", err)
 	}
 }
@@ -117,16 +117,17 @@ func TestDepotGetFailure(t *testing.T) {
 	d := getDepot(t)
 	defer os.RemoveAll(dir)
 
-	if err := d.Put(tag, []byte(data)); err != nil {
+	if err := d.Put(&Tag{"host.pem", 0600}, []byte(data)); err != nil {
 		t.Fatal("Failed putting file into Depot:", err)
 	}
 
-	if _, err := d.Get(wrongTag); err == nil {
-		t.Fatal("Expect not to checking out file with insufficient permission")
+	// host.pem was created with mode 0600, so the permission check for 0400 should fail...
+	if _, err := d.Get(&Tag{"host.pem", 0400}); err == nil {
+		t.Fatal("Expected permissions failure")
 	}
 
-	if _, err := d.Get(wrongTag2); err == nil {
-		t.Fatal("Expect not to checking out file with nonexist name")
+	if _, err := d.Get(&Tag{"does-not-exist.pem", 0777}); err == nil {
+		t.Fatal("Expect get failure for non-existent file")
 	}
 
 	if err := d.Delete(tag); err != nil {
@@ -172,5 +173,40 @@ func TestDepotGetFile(t *testing.T) {
 
 	if file.Info.Mode() != tag.perm {
 		t.Fatal("Failed setting permission")
+	}
+}
+
+func TestCheckPermissions(t *testing.T) {
+	tests := []struct {
+		required fs.FileMode
+		file     fs.FileMode
+		want     bool
+	}{
+		// If required is 0777, any file permissions should pass...
+		{0777, 0000, true},
+		{0777, 0666, true},
+		{0777, 0400, true},
+		// When required is 0400, anything with more bits set should fail...
+		{0400, 0600, false},
+		{0400, 0440, false},
+		{0400, 0004, false},
+		// required == file should pass...
+		{0000, 0000, true},
+		{0440, 0440, true},
+		{0600, 0600, true},
+		{0777, 0777, true},
+		// When required is 0660, anything with more bits set fails, and
+		// anything with fewer bits set succeeds...
+		{0660, 0664, false},
+		{0660, 0670, false},
+		{0660, 0760, false},
+		{0660, 0660, true},
+		{0660, 0600, true},
+		{0660, 0440, true},
+	}
+	for _, tc := range tests {
+		if got := checkPermissions(tc.required, tc.file); got != tc.want {
+			t.Errorf("checkPermissions(required=%o, file=%o) = %t, want %t", tc.required, tc.file, got, tc.want)
+		}
 	}
 }
