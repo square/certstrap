@@ -29,11 +29,6 @@ const (
 	dir  = ".certstrap-test"
 )
 
-var (
-	tag  = &Tag{"host.pem", 0600}
-	tag2 = &Tag{"host2.pem", 0600}
-)
-
 func getDepot(t *testing.T) *FileDepot {
 	os.RemoveAll(dir)
 
