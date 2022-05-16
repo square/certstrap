@@ -45,3 +45,45 @@ jobs:
         # Exclude deprecated PEM functions from the linter until
         # https://github.com/square/certstrap/issues/124 is resolved
         args: --exclude '(De|En)cryptPEMBlock'
+  
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.17
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Build binaries
+      run: ./build
+
+    - name: Run integration tests
+      run: ./integration_test
+      
+  lint-windows:
+    name: Lint Windows
+    runs-on: windows-latest
+    steps:
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v2
+
+      with:
+        # Exclude deprecated PEM functions from the linter until
+        # https://github.com/square/certstrap/issues/124 is resolved
+        args: --exclude '(De|En)cryptPEMBlock'
