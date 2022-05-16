@@ -30,11 +30,6 @@ const (
 	crlSuffix     = ".crl"
 )
 
-const (
-	BranchPerm = 0440
-	LeafPerm   = 0444
-)
-
 // CrtTag returns a tag corresponding to a certificate
 func CrtTag(prefix string) *Tag {
 	return &Tag{prefix + crtSuffix, LeafPerm}
