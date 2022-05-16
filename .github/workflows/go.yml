@@ -71,19 +71,3 @@ jobs:
 
     - name: Run integration tests
       run: ./integration_test
-
-  lint-windows:
-    name: Lint Windows
-    runs-on: windows-latest
-    steps:
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v2
-
-      with:
-        # Exclude deprecated PEM functions from the linter until
-        # https://github.com/square/certstrap/issues/124 is resolved
-        args: --exclude '(De|En)cryptPEMBlock'
