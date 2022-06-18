@@ -104,10 +104,7 @@ func CreateCertificateAuthorityWithOptions(key *Key, organizationalUnit string, 
 		authTemplate.PermittedDNSDomains = permitDomains
 	}
 
-	// Go through each option that has the `type Option func(*x509.Certificate)` signature
-	for _, opt := range opts {
-		opt(&authTemplate)
-	}
+	applyOptions(&authTemplate, opts)
 
 	crtBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, &authTemplate, key.Public, key.Private)
 	if err != nil {
@@ -214,10 +211,7 @@ func CreateIntermediateCertificateAuthorityWithOptions(crtAuth *Certificate, key
 		return nil, err
 	}
 
-	// Go through each option that has the `type Option func(*x509.Certificate)` signature
-	for _, opt := range opts {
-		opt(&authTemplate)
-	}
+	applyOptions(&authTemplate, opts)
 
 	return NewCertificateFromDER(crtOutBytes), nil
 }
@@ -230,6 +224,12 @@ func WithPathlenOption(pathlen int, excludePathlen bool) func(template *x509.Cer
 		if excludePathlen {
 			template.MaxPathLen = -1
 		}
+	}
+}
+
+func applyOptions(template *x509.Certificate, opts []Option) {
+	for _, opt := range opts {
+		opt(template)
 	}
 }
 
