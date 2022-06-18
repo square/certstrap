@@ -28,7 +28,7 @@ func TestCreateCertificateAuthority(t *testing.T) {
 		t.Fatal("Failed creating rsa key:", err)
 	}
 
-	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"}, 0)
+	crt, err := CreateCertificateAuthority(key, "OU", time.Now().AddDate(5, 0, 0), "test", "US", "California", "San Francisco", "CA Name", []string{".example.com"})
 	if err != nil {
 		t.Fatal("Failed creating certificate authority:", err)
 	}
@@ -63,5 +63,9 @@ func TestCreateCertificateAuthority(t *testing.T) {
 
 	if crt.crt.PermittedDNSDomains[0] != ".example.com" {
 		t.Fatalf("Wrong permitted DNS domain, want %q, got %q", ".example.com", crt.crt.PermittedDNSDomains[0])
+	}
+
+	if crt.crt.MaxPathLen != 0 {
+		t.Fatalf("Wrong MaxPathLen value, want %q, got %q", "0", crt.crt.MaxPathLen)
 	}
 }
