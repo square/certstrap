@@ -18,6 +18,8 @@
 package pkix
 
 import (
+	"crypto/x509"
+
 	"bytes"
 	"testing"
 	"time"
@@ -66,4 +68,29 @@ func TestCreateCertificateHost(t *testing.T) {
 	if err = rawCrt.CheckSignatureFrom(rawCrtAuth); err != nil {
 		t.Fatal("Failed to check signature:", err)
 	}
+
+	extKeyUsage := []x509.ExtKeyUsage{
+		x509.ExtKeyUsageCodeSigning,
+	}
+	cscrt, err := CreateCertificateHostWithExtUsage(crtAuth, key, csr, time.Now().AddDate(5000, 0, 0), extKeyUsage)
+	if err != nil {
+		t.Fatal("Failed creating certificate with codesigning for host:", err)
+	}
+
+	csrawCrt, err := cscrt.GetRawCertificate()
+	if err != nil {
+		t.Fatal("Failed to get x509.Certificate with codesigning:", err)
+	}
+
+	hasCodeSigning := false
+	for _, eku := range csrawCrt.ExtKeyUsage {
+		if eku == x509.ExtKeyUsageCodeSigning {
+			hasCodeSigning = true
+		}
+	}
+
+	if !hasCodeSigning {
+		t.Fatal("x509.Certificate does not include codesigning extra key usage")
+	}
+
 }
