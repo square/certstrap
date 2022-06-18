@@ -71,7 +71,7 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
-func CreateCertificateAuthorityWithOption(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string, opts []Option) (*Certificate, error) {
+func CreateCertificateAuthorityWithOption(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string, opts ...Option) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
@@ -103,6 +103,8 @@ func CreateCertificateAuthorityWithOption(key *Key, organizationalUnit string, e
 		authTemplate.PermittedDNSDomainsCritical = true
 		authTemplate.PermittedDNSDomains = permitDomains
 	}
+
+	// Go through each option that has the `type Option func(*x509.Certificate)` signature
 	for _, opt := range opts {
 		opt(&authTemplate)
 	}
