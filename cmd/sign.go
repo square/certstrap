@@ -145,7 +145,7 @@ func newSignAction(c *cli.Context) {
 	var crtOut *pkix.Certificate
 	if c.Bool("intermediate") {
 		fmt.Fprintln(os.Stderr, "Building intermediate")
-		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime, c.Int("path-length"))
+		crtOut, err = pkix.CreateIntermediateCertificateAuthority(crt, key, csr, expiresTime)
 	} else {
 		if c.IsSet("path-length") {
 			fmt.Fprintln(os.Stderr, "The 'path-length' can only be used with 'intermediate' flag.")
