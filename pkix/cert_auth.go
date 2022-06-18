@@ -167,6 +167,61 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 	return NewCertificateFromDER(crtOutBytes), nil
 }
 
+// CreateIntermediateCertificateAuthorityWithOptions creates an intermediate with options.
+// CA certificate signed by the given authority.
+func CreateIntermediateCertificateAuthorityWithOptions(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, opts ...Option) (*Certificate, error) {
+	authTemplate := newAuthTemplate()
+
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, err
+	}
+	authTemplate.SerialNumber.Set(serialNumber)
+	authTemplate.MaxPathLenZero = false
+
+	rawCsr, err := csr.GetRawCertificateSigningRequest()
+	if err != nil {
+		return nil, err
+	}
+
+	authTemplate.RawSubject = rawCsr.RawSubject
+
+	caExpiry := time.Now().Add(crtAuth.GetExpirationDuration())
+	// ensure cert doesn't expire after issuer
+	if caExpiry.Before(proposedExpiry) {
+		authTemplate.NotAfter = caExpiry
+	} else {
+		authTemplate.NotAfter = proposedExpiry
+	}
+
+	authTemplate.SubjectKeyId, err = GenerateSubjectKeyID(rawCsr.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	authTemplate.IPAddresses = rawCsr.IPAddresses
+	authTemplate.DNSNames = rawCsr.DNSNames
+	authTemplate.URIs = rawCsr.URIs
+
+	rawCrtAuth, err := crtAuth.GetRawCertificate()
+	if err != nil {
+		return nil, err
+	}
+
+	crtOutBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, rawCrtAuth, rawCsr.PublicKey, keyAuth.Private)
+	if err != nil {
+		return nil, err
+	}
+
+	// Go through each option that has the `type Option func(*x509.Certificate)` signature
+	for _, opt := range opts {
+		opt(&authTemplate)
+	}
+
+	return NewCertificateFromDER(crtOutBytes), nil
+}
+
 // WithPathlenOption will check if the certificate should have `pathlen` or not.
 // With `pathlen` set to 0 will allow the certificate to create as many intermediate certificate as the user want.
 func WithPathlenOption(pathlen int, excludePathlen bool) func(template *x509.Certificate) {
