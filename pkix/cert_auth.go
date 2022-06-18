@@ -206,12 +206,12 @@ func CreateIntermediateCertificateAuthorityWithOptions(crtAuth *Certificate, key
 		return nil, err
 	}
 
+	applyOptions(&authTemplate, opts)
+
 	crtOutBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, rawCrtAuth, rawCsr.PublicKey, keyAuth.Private)
 	if err != nil {
 		return nil, err
 	}
-
-	applyOptions(&authTemplate, opts)
 
 	return NewCertificateFromDER(crtOutBytes), nil
 }
