@@ -223,7 +223,6 @@ func CreateIntermediateCertificateAuthorityWithOptions(crtAuth *Certificate, key
 }
 
 // WithPathlenOption will check if the certificate should have `pathlen` or not.
-// With `pathlen` set to 0 will allow the certificate to create as many intermediate certificate as the user want.
 func WithPathlenOption(pathlen int, excludePathlen bool) func(template *x509.Certificate) {
 	return func(template *x509.Certificate) {
 		template.MaxPathLen = pathlen
