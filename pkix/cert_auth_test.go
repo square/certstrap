@@ -76,7 +76,7 @@ func TestCreateCertificateAuthorityWithOptions(t *testing.T) {
 		pathlen:        0,
 		excludePathlen: false,
 	}, {
-		name:           "pathlen: 0, excludePathlen: false",
+		name:           "pathlen: 1, excludePathlen: false",
 		pathlen:        1,
 		excludePathlen: false,
 	}, {
