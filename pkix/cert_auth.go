@@ -69,9 +69,9 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 	return NewCertificateFromDER(crtBytes), nil
 }
 
-// CreateCertificateAuthorityWithOption creates Certificate Authority using existing key with options.
+// CreateCertificateAuthorityWithOptions creates Certificate Authority using existing key with options.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
-func CreateCertificateAuthorityWithOption(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string, opts ...Option) (*Certificate, error) {
+func CreateCertificateAuthorityWithOptions(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string, opts ...Option) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
