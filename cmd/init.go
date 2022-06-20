@@ -190,7 +190,11 @@ func initAction(c *cli.Context) {
 		}
 	}
 
-	crt, err := pkix.CreateCertificateAuthorityWithOptions(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"), pkix.WithPathlenOption(c.Int("path-length"), c.Bool("exclude-path-length")))
+	opts := []pkix.Option{
+		pkix.WithPathlenOption(c.Int("path-length"), c.Bool("exclude-path-length")),
+	}
+
+	crt, err := pkix.CreateCertificateAuthorityWithOptions(key, c.String("organizational-unit"), expiresTime, c.String("organization"), c.String("country"), c.String("province"), c.String("locality"), c.String("common-name"), c.StringSlice("permit-domain"), opts...)
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Create certificate error:", err)
