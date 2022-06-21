@@ -19,6 +19,7 @@ package depot
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -115,7 +116,7 @@ func (d *FileDepot) check(tag *Tag) error {
 		return err
 	}
 	if !checkPermissions(tag.perm, fi.Mode()) {
-		return fmt.Errof("permissions too lax for %v: required no more than %v, found %v", name, tag.perm, fi.Mode())
+		return fmt.Errorf("permissions too lax for %v: required no more than %v, found %v", name, tag.perm, fi.Mode())
 	}
 	return nil
 }
