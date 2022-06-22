@@ -140,7 +140,6 @@ func CreateIntermediateCertificateAuthorityWithOptions(crtAuth *Certificate, key
 func WithPathlenOption(pathlen int, excludePathlen bool) func(template *x509.Certificate) {
 	return func(template *x509.Certificate) {
 		template.MaxPathLen = pathlen
-		template.MaxPathLenZero = !excludePathlen
 
 		if excludePathlen {
 			template.MaxPathLen = -1
