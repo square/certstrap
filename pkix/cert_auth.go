@@ -29,44 +29,8 @@ type Option func(*x509.Certificate)
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
 func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string) (*Certificate, error) {
-	authTemplate := newAuthTemplate()
-
-	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
-	if err != nil {
-		return nil, err
-	}
-	authTemplate.SubjectKeyId = subjectKeyID
-	authTemplate.NotAfter = expiry
-	if len(country) > 0 {
-		authTemplate.Subject.Country = []string{country}
-	}
-	if len(province) > 0 {
-		authTemplate.Subject.Province = []string{province}
-	}
-	if len(locality) > 0 {
-		authTemplate.Subject.Locality = []string{locality}
-	}
-	if len(organization) > 0 {
-		authTemplate.Subject.Organization = []string{organization}
-	}
-	if len(organizationalUnit) > 0 {
-		authTemplate.Subject.OrganizationalUnit = []string{organizationalUnit}
-	}
-	if len(commonName) > 0 {
-		authTemplate.Subject.CommonName = commonName
-	}
-
-	if len(permitDomains) > 0 {
-		authTemplate.PermittedDNSDomainsCritical = true
-		authTemplate.PermittedDNSDomains = permitDomains
-	}
-
-	crtBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, &authTemplate, key.Public, key.Private)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewCertificateFromDER(crtBytes), nil
+	// Passing all arguments to CreateCertificateAuthorityWithOptions
+	return CreateCertificateAuthorityWithOptions(key, organizationalUnit, expiry, organization, country, province, locality, commonName, permitDomains)
 }
 
 // CreateCertificateAuthorityWithOptions creates Certificate Authority using existing key with options.
