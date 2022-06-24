@@ -24,9 +24,18 @@ import (
 	"time"
 )
 
+type Option func(*x509.Certificate)
+
 // CreateCertificateAuthority creates Certificate Authority using existing key.
 // CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
 func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string) (*Certificate, error) {
+	// Passing all arguments to CreateCertificateAuthorityWithOptions
+	return CreateCertificateAuthorityWithOptions(key, organizationalUnit, expiry, organization, country, province, locality, commonName, permitDomains)
+}
+
+// CreateCertificateAuthorityWithOptions creates Certificate Authority using existing key with options.
+// CertificateAuthorityInfo returned is the extra infomation required by Certificate Authority.
+func CreateCertificateAuthorityWithOptions(key *Key, organizationalUnit string, expiry time.Time, organization string, country string, province string, locality string, commonName string, permitDomains []string, opts ...Option) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	subjectKeyID, err := GenerateSubjectKeyID(key.Public)
@@ -59,6 +68,8 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 		authTemplate.PermittedDNSDomains = permitDomains
 	}
 
+	applyOptions(&authTemplate, opts)
+
 	crtBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, &authTemplate, key.Public, key.Private)
 	if err != nil {
 		return nil, err
@@ -70,6 +81,13 @@ func CreateCertificateAuthority(key *Key, organizationalUnit string, expiry time
 // CreateIntermediateCertificateAuthority creates an intermediate
 // CA certificate signed by the given authority.
 func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time) (*Certificate, error) {
+	// Passing all arguments to CreateIntermediateCertificateAuthorityWithOptions
+	return CreateIntermediateCertificateAuthorityWithOptions(crtAuth, keyAuth, csr, proposedExpiry)
+}
+
+// CreateIntermediateCertificateAuthorityWithOptions creates an intermediate with options.
+// CA certificate signed by the given authority.
+func CreateIntermediateCertificateAuthorityWithOptions(crtAuth *Certificate, keyAuth *Key, csr *CertificateSigningRequest, proposedExpiry time.Time, opts ...Option) (*Certificate, error) {
 	authTemplate := newAuthTemplate()
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -78,7 +96,6 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 		return nil, err
 	}
 	authTemplate.SerialNumber.Set(serialNumber)
-	authTemplate.MaxPathLenZero = false
 
 	rawCsr, err := csr.GetRawCertificateSigningRequest()
 	if err != nil {
@@ -109,6 +126,8 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 		return nil, err
 	}
 
+	applyOptions(&authTemplate, opts)
+
 	crtOutBytes, err := x509.CreateCertificate(rand.Reader, &authTemplate, rawCrtAuth, rawCsr.PublicKey, keyAuth.Private)
 	if err != nil {
 		return nil, err
@@ -117,12 +136,29 @@ func CreateIntermediateCertificateAuthority(crtAuth *Certificate, keyAuth *Key, 
 	return NewCertificateFromDER(crtOutBytes), nil
 }
 
+// WithPathlenOption will check if the certificate should have `pathlen` or not.
+func WithPathlenOption(pathlen int, excludePathlen bool) func(template *x509.Certificate) {
+	return func(template *x509.Certificate) {
+		template.MaxPathLen = pathlen
+
+		if excludePathlen {
+			template.MaxPathLen = -1
+		}
+	}
+}
+
+func applyOptions(template *x509.Certificate, opts []Option) {
+	for _, opt := range opts {
+		opt(template)
+	}
+}
+
 func newAuthTemplate() x509.Certificate {
 	// Build CA based on RFC5280
 	return x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		// NotBefore is set to be 10min earlier to fix gap on time difference in cluster
-		NotBefore: time.Now().Add(-10*time.Minute).UTC(),
+		NotBefore: time.Now().Add(-10 * time.Minute).UTC(),
 		NotAfter:  time.Time{},
 		// Used for certificate signing only
 		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
