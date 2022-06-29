@@ -6,4 +6,4 @@ require (
 	go.step.sm/crypto v0.16.2
 )
 
-go 1.13
+go 1.16
