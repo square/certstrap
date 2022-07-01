@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 /*-
@@ -21,11 +22,8 @@ package tests
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"testing"
 )
@@ -36,7 +34,7 @@ const (
 	passphrase = "123456"
 )
 
-var binPath = fmt.Sprintf("../bin/certstrap-%s-%s-amd64", os.Getenv("BUILD_TAG"), runtime.GOOS)
+var binPath = "../certstrap"
 
 func run(command string, args ...string) (string, string, error) {
 	var stdoutBytes, stderrBytes bytes.Buffer
