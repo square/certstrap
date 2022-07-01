@@ -25,8 +25,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-// release is overriden by the build script using -X argument that is passed to the Go linker.
-var release = "(version not set)"
+var release = "1.3.0"
 
 func main() {
 	app := cli.NewApp()
