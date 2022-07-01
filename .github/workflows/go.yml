@@ -28,7 +28,7 @@ jobs:
       run: go build -o . ./...
 
     - name: Run integration tests
-      run: ./integration_test
+      run: GODEBUG=x509sha1=1 go test -v -tags=integration ./...
 
   lint:
     name: Lint
@@ -70,4 +70,4 @@ jobs:
       run: go build -o . ./...
 
     - name: Run integration tests
-      run: ./integration_test
+      run: GODEBUG=x509sha1=1 go test -v -tags=integration ./...
