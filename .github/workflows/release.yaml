@@ -1,0 +1,80 @@
+---
+name: Release
+
+on:
+  push:
+    tags: [ "*" ]
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      matrix:
+        version: [1.18.x]
+        target:
+          - { os: 'darwin', platform: 'macos-latest', arch: 'amd64' }
+          - { os: 'linux', platform: 'ubuntu-latest', arch: 'amd64' }
+          - { os: 'windows', platform: 'windows-latest', arch: 'amd64' }
+    runs-on: ${{ matrix.target.platform }}
+    steps:
+      - name: Set up toolchain
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.version }}
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Build binary
+        run: go build -o certsrap .
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: certstrap-${{ matrix.target.os }}-${{ matrix.target.arch }}
+          path: certstrap
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: "Release Build (Draft)"
+          body: "Release Build (from ${{ github.ref }}/${{ github.sha }})"
+          draft: true
+          prerelease: true
+
+  add-assets:
+    name: Add assets
+    runs-on: ubuntu-latest
+    needs: [ build, release ]
+    strategy:
+      matrix:
+        target:
+          - { os: 'darwin', arch: 'amd64' }
+          - { os: 'linux', arch: 'amd64' }
+          - { os: 'windows', arch: 'amd64' }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: certstrap-${{ matrix.target.os }}-${{ matrix.target.arch }}
+          path: dist
+      - name: Upload artifact to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ./dist/certstrap
+          asset_name: certstrap-${{ matrix.target.os }}-${{ matrix.target.arch }}
+          asset_content_type: application/octet-stream

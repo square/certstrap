@@ -12,7 +12,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.17
+        go-version: 1.18
       id: go
 
     - name: Check out code into the Go module directory
@@ -22,13 +22,13 @@ jobs:
       run: go mod download
 
     - name: Run tests
-      run: go test -v ./...
+      run: GODEBUG=x509sha1=1 go test -v ./...
 
     - name: Build binaries
-      run: ./build
+      run: go build -o . ./...
 
     - name: Run integration tests
-      run: ./integration_test
+      run: GODEBUG=x509sha1=1 go test -v -tags=integration ./...
 
   lint:
     name: Lint
@@ -45,7 +45,7 @@ jobs:
         # Exclude deprecated PEM functions from the linter until
         # https://github.com/square/certstrap/issues/124 is resolved
         args: --exclude '(De|En)cryptPEMBlock'
-  
+
   build-windows:
     name: Build Windows
     runs-on: windows-latest
@@ -64,10 +64,14 @@ jobs:
       run: go mod download
 
     - name: Run tests
-      run: go test -v ./...
+      run: |
+        set GODEBUG=x509sha1=1
+        go test -v ./...
 
     - name: Build binaries
-      run: ./build
+      run: go build -o . ./...
 
     - name: Run integration tests
-      run: ./integration_test
+      run: |
+        set GODEBUG=x509sha1=1
+        go test -v -tags=integration ./...
