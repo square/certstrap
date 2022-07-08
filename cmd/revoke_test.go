@@ -64,16 +64,74 @@ func TestRevokeCmd(t *testing.T) {
 	}
 }
 
+func TestRevokeCmdWithPassphrase(t *testing.T) {
+	tmp, err := ioutil.TempDir("", "certstrap-revoke")
+	if err != nil {
+		t.Fatalf("could not create tmp dir: %v", err)
+	}
+	defer os.RemoveAll(tmp)
+
+	d, err = depot.NewFileDepot(tmp)
+	if err != nil {
+		t.Fatalf("could not create file depot: %v", err)
+	}
+
+	passphrase := []byte("cism")
+	setupCAWithPassphrase(t, d, passphrase)
+	setupCNWithPassphrase(t, d, passphrase)
+
+	fs := flag.NewFlagSet("test", flag.ContinueOnError)
+	fs.String("CA", "", "")
+	fs.String("CN", "", "")
+	fs.String("passphrase", "cism", "")
+	if err := fs.Parse([]string{"-CA", "ca", "-CN", "cn"}); err != nil {
+		t.Fatal("could not parse flags")
+	}
+
+	new(revokeCommand).run(cli.NewContext(nil, fs, nil))
+
+	list, err := depot.GetCertificateRevocationList(d, caName)
+	if err != nil {
+		t.Fatalf("could not get crl: %v", err)
+	}
+
+	certList, err := x509.ParseDERCRL(list.DERBytes())
+	if err != nil {
+		t.Fatalf("could not parse crl: %v", err)
+	}
+
+	if len(certList.TBSCertList.RevokedCertificates) != 1 {
+		t.Fatalf("unexpected number of revoked certs: want = 1, got = %d", len(certList.TBSCertList.RevokedCertificates))
+	}
+
+	cnCert, _ := depot.GetCertificate(d, cnName)
+	cnX509, _ := cnCert.GetRawCertificate()
+
+	if cnX509.SerialNumber.Cmp(certList.TBSCertList.RevokedCertificates[0].SerialNumber) != 0 {
+		t.Fatalf("certificates serial numbers are not equal")
+	}
+}
+
 func setupCA(t *testing.T, dt depot.Depot) {
+	setupCAWithPassphrase(t, dt, []byte(""))
+}
+
+func setupCAWithPassphrase(t *testing.T, dt depot.Depot, passphrase []byte) {
 	// create private key
 	key, err := pkix.CreateRSAKey(2048)
 	if err != nil {
 		t.Fatalf("could not create RSA key: %v", err)
 	}
-	if err = depot.PutPrivateKey(dt, caName, key); err != nil {
-		t.Fatalf("could not put private key: %v", err)
-	}
 
+	if len(passphrase) > 0 {
+		if err = depot.PutEncryptedPrivateKey(dt, caName, key, passphrase); err != nil {
+			t.Fatalf("could not put private key: %v", err)
+		}
+	} else {
+		if err = depot.PutPrivateKey(dt, caName, key); err != nil {
+			t.Fatalf("could not put private key: %v", err)
+		}
+	}
 	// create certificate authority
 	caCert, err := pkix.CreateCertificateAuthority(key, caName, time.Now().Add(1*time.Minute), "", "", "", "", caName, nil)
 	if err != nil {
@@ -94,6 +152,10 @@ func setupCA(t *testing.T, dt depot.Depot) {
 }
 
 func setupCN(t *testing.T, dt depot.Depot) {
+	setupCNWithPassphrase(t, dt, []byte(""))
+}
+
+func setupCNWithPassphrase(t *testing.T, dt depot.Depot, passphrase []byte) {
 	// create private key
 	key, err := pkix.CreateRSAKey(2048)
 	if err != nil {
@@ -113,9 +175,17 @@ func setupCN(t *testing.T, dt depot.Depot) {
 		t.Fatalf("could not get cert: %v", err)
 	}
 
-	caKey, err := depot.GetPrivateKey(dt, caName)
-	if err != nil {
-		t.Fatalf("could not get CA key: %v", err)
+	var caKey *pkix.Key
+	if len(passphrase) > 0 {
+		caKey, err = depot.GetEncryptedPrivateKey(dt, caName, passphrase)
+		if err != nil {
+			t.Fatalf("could not get private key: %v", err)
+		}
+	} else {
+		caKey, err = depot.GetPrivateKey(dt, caName)
+		if err != nil {
+			t.Fatalf("could not get CA key: %v", err)
+		}
 	}
 
 	cnCert, err := pkix.CreateCertificateHost(caCert, caKey, csr, time.Now().Add(1*time.Hour))
