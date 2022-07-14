@@ -113,7 +113,7 @@ func TestWorkflow(t *testing.T) {
 				t.Fatalf("Public key algorithm = %d, want %d", cert.PublicKeyAlgorithm, tc.expected)
 			}
 
-			stdout, stderr, err = run(binPath, "revoke", "--CN", hostname, "--CA", "CA")
+			stdout, stderr, err = run(binPath, "revoke", "--passphrase", passphrase, "--CN", hostname, "--CA", "CA")
 			if stderr != "" || err != nil {
 				t.Fatalf("Received unexpected error: %v, %v", stderr, err)
 			}

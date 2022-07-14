@@ -27,6 +27,10 @@ func NewRevokeCommand() cli.Command {
 		Description: "Add certificate to the CA's CRL.",
 		Flags: []cli.Flag{
 			cli.StringFlag{
+				Name:  "passphrase",
+				Usage: "Passphrase to decrypt private-key PEM block of CA",
+			},
+			cli.StringFlag{
 				Name:  "CN",
 				Usage: "Common Name (CN) of certificate to revoke",
 			},

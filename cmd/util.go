@@ -64,6 +64,8 @@ func createPassPhrase() ([]byte, error) {
 }
 
 func askPassPhrase(name string) ([]byte, error) {
+	fmt.Println("calling GetPasswdPrompt")
+
 	pass, err := gopass.GetPasswdPrompt(fmt.Sprintf("Enter passphrase for %v (empty for no passphrase): ", name), false, os.Stdin, os.Stdout)
 	if err != nil {
 		return nil, err
@@ -73,6 +75,7 @@ func askPassPhrase(name string) ([]byte, error) {
 
 func getPassPhrase(c *cli.Context, name string) ([]byte, error) {
 	if c.IsSet("passphrase") {
+		fmt.Println("getPassPhrase is set")
 		return []byte(c.String("passphrase")), nil
 	}
 	return askPassPhrase(name)
