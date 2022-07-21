@@ -27,6 +27,10 @@ func NewRevokeCommand() cli.Command {
 		Description: "Add certificate to the CA's CRL.",
 		Flags: []cli.Flag{
 			cli.StringFlag{
+				Name:  "passphrase",
+				Usage: "Passphrase to decrypt private-key PEM block of CA",
+			},
+			cli.StringFlag{
 				Name:  "CN",
 				Usage: "Common Name (CN) of certificate to revoke",
 			},
@@ -77,7 +81,7 @@ func (c *revokeCommand) run(ctx *cli.Context) {
 		RevocationTime: time.Now(),
 	})
 
-	err = c.saveRevokedCertificates(caCert, revoked)
+	err = c.saveRevokedCertificates(ctx, caCert, revoked)
 	c.checkErr(err)
 }
 
@@ -111,13 +115,20 @@ func (c *revokeCommand) revokedCertificates() ([]x509pkix.RevokedCertificate, er
 	return certList.TBSCertList.RevokedCertificates, nil
 }
 
-func (c *revokeCommand) saveRevokedCertificates(cert *x509.Certificate, list []x509pkix.RevokedCertificate) error {
-	priv, err := depot.GetPrivateKey(d, c.ca)
+func (c *revokeCommand) saveRevokedCertificates(ctx *cli.Context, cert *x509.Certificate, list []x509pkix.RevokedCertificate) error {
+	privateKey, err := depot.GetPrivateKey(d, c.ca)
 	if err != nil {
-		return fmt.Errorf("could not get %q private key: %v", c.ca, err)
+		pass, err := getPassPhrase(ctx, "CA key")
+		if err != nil {
+			return fmt.Errorf("error retreiving passphrase when saving revoked certificates: %v", err)
+		}
+		privateKey, err = depot.GetEncryptedPrivateKey(d, c.ca, pass)
+		if err != nil {
+			return fmt.Errorf("get CA key error when saving revoked certificates: %v", err)
+		}
 	}
 
-	crlBytes, err := cert.CreateCRL(rand.Reader, priv.Private, list, time.Now(), time.Now().Add(2*8760*time.Hour))
+	crlBytes, err := cert.CreateCRL(rand.Reader, privateKey.Private, list, time.Now(), time.Now().Add(2*8760*time.Hour))
 	if err != nil {
 		return fmt.Errorf("could not create CRL: %v", err)
 	}
