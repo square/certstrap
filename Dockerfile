@@ -6,7 +6,7 @@
 # To run certstrap from the image (for example):
 #     docker run --rm squareup/certstrap --version
 
-FROM golang:1.18-alpine as build
+FROM golang:1.19-alpine as build
 
 WORKDIR /app
 
