@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -163,7 +162,7 @@ func newCertAction(c *cli.Context) {
 	keyFilepath := fileName(c, "key", depotDir, formattedName, "key")
 	switch {
 	case c.IsSet("key") && fileExists(c.String("key")):
-		keyBytes, err := ioutil.ReadFile(c.String("key"))
+		keyBytes, err := os.ReadFile(c.String("key"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
 			os.Exit(1)

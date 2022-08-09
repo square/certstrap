@@ -3,7 +3,6 @@ package cmd
 import (
 	"crypto/x509"
 	"flag"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -19,7 +18,7 @@ const (
 )
 
 func TestRevokeCmd(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "certstrap-revoke")
+	tmp, err := os.MkdirTemp("", "certstrap-revoke")
 	if err != nil {
 		t.Fatalf("could not create tmp dir: %v", err)
 	}
