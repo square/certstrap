@@ -16,8 +16,8 @@ github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeV
 github.com/smallstep/assert v0.0.0-20200723003110-82e2b9b3b262 h1:unQFBIznI+VYD1/1fApl1A+9VcBk+9dcqGfnePY87LY=
 github.com/urfave/cli v1.22.9 h1:cv3/KhXGBGjEXLC4bH0sLuJ9BewaAbpk5oyMOveu4pw=
 github.com/urfave/cli v1.22.9/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
-go.step.sm/crypto v0.17.0 h1:qaLUbWygcMRMxrsz91jL5ytHIsIMABFYX6TkU+V8Pq8=
-go.step.sm/crypto v0.17.0/go.mod h1:2oZdJ4ZUqPv5q8wz6yN4Qfsdcu2+eRaob4q1E5Azavs=
+go.step.sm/crypto v0.18.0 h1:saD/tMG7uKJmUIPyOyudidVTHPnozTU02CDd+oqwKn0=
+go.step.sm/crypto v0.18.0/go.mod h1:qZ+pNU1nV+THwP7TPTNCRMRr9xrRURhETTAK7U5psfw=
 golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 h1:0es+/5331RGQPcXlMfP+WrnIIS6dNnNRe0WB02W0F4M=
 golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
