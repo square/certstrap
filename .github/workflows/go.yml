@@ -8,18 +8,15 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.19
+        go-version: '1.19'
+        check-latest: true
       id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Get dependencies
-      run: go mod download
 
     - name: Run tests
       run: GODEBUG=x509sha1=1 go test -v ./...
@@ -34,12 +31,11 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@v3
 
       with:
         # Exclude deprecated PEM functions from the linter until
@@ -50,18 +46,15 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.19
+        go-version: '1.19'
+        check-latest: true
       id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Get dependencies
-      run: go mod download
 
     - name: Run tests
       run: |
