@@ -13,7 +13,9 @@ jobs:
         version: [1.18.x]
         target:
           - { os: 'darwin', platform: 'macos-latest', arch: 'amd64' }
+          - { os: 'darwin', platform: 'macos-latest', arch: 'arm64' }
           - { os: 'linux', platform: 'ubuntu-latest', arch: 'amd64' }
+          - { os: 'linux', platform: 'ubuntu-latest', arch: 'arm64' }
           - { os: 'windows', platform: 'windows-latest', arch: 'amd64' }
     runs-on: ${{ matrix.target.platform }}
     steps:
@@ -60,7 +62,9 @@ jobs:
       matrix:
         target:
           - { os: 'darwin', arch: 'amd64' }
+          - { os: 'darwin', arch: 'arm64' }
           - { os: 'linux', arch: 'amd64' }
+          - { os: 'linux', arch: 'arm64' }
           - { os: 'windows', arch: 'amd64' }
     steps:
       - uses: actions/checkout@v2
