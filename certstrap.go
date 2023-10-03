@@ -25,7 +25,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var release = "1.3.0"
+var release = "1.3.0-pfx"
 
 func main() {
 	app := cli.NewApp()
@@ -47,6 +47,7 @@ func main() {
 		cmd.NewCertRequestCommand(),
 		cmd.NewSignCommand(),
 		cmd.NewRevokeCommand(),
+		cmd.NewExportPfxCommand(),
 	}
 	app.Before = func(c *cli.Context) error {
 		return cmd.InitDepot(c.String("depot-path"))
