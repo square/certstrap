@@ -21,9 +21,6 @@ import (
 	"os"
 	"strings"
 
-	//"github.com/codegangsta/cli"
-	//"github.com/mcpride/certstrap/depot"
-	//"github.com/mcpride/certstrap/pkix"
 	"github.com/square/certstrap/depot"
 	"github.com/square/certstrap/pkix"
 	"github.com/urfave/cli"
@@ -82,6 +79,7 @@ func exportPfxAction(c *cli.Context) {
 	}
 
 	caCrts := []*pkix.Certificate{}
+	var formattedCANames []string = []string{}
 	if c.IsSet("chain") {
 		var formattedCAName string
 		chain := strings.Split(c.String("chain"), ",")
@@ -93,6 +91,7 @@ func exportPfxAction(c *cli.Context) {
 				os.Exit(1)
 			}
 			caCrts = append(caCrts, ca)
+			formattedCANames = append(formattedCANames, fmt.Sprintf("%s/%s.crt", depotDir, formattedCAName))
 		}
 	}
 
@@ -101,7 +100,11 @@ func exportPfxAction(c *cli.Context) {
 		fmt.Fprintln(os.Stderr, "Export certificate chain to personal information exchange format failed:", err)
 		os.Exit(1)
 	} else {
-		fmt.Printf("Created %s/%s.pfx from %s/%s.crt and %s/%s.key\n", depotDir, formattedName, depotDir, formattedName, depotDir, formattedName)
+		fmt.Printf("Created %s/%s.pfx from %s/%s.crt and %s/%s.key", depotDir, formattedName, depotDir, formattedName, depotDir, formattedName)
+		if len(formattedCANames) > 0 {
+			fmt.Printf(" with chain %s", formattedCANames)
+		}
+		fmt.Printf("\n")
 	}
 
 	if c.Bool("stdout") {
