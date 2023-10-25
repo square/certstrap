@@ -25,7 +25,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var release = "1.3.0-pfx"
+var release = "1.3.0"
 
 func main() {
 	app := cli.NewApp()
