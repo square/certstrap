@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -132,7 +131,7 @@ func (d *FileDepot) Get(tag *Tag) ([]byte, error) {
 	if err := d.check(tag); err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(d.path(tag.name))
+	return os.ReadFile(d.path(tag.name))
 }
 
 // Delete removes the file specified by the tag
@@ -181,6 +180,6 @@ func (d *FileDepot) GetFile(tag *Tag) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err := ioutil.ReadFile(d.path(tag.name))
+	b, err := os.ReadFile(d.path(tag.name))
 	return &File{fi, b}, err
 }
