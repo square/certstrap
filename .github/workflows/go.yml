@@ -10,13 +10,13 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@0caeaed6fd66a828038c2da3c0f662a42862658f # ratchet:actions/setup-go@v1
       with:
         go-version: 1.18
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # ratchet:actions/checkout@v2
 
     - name: Get dependencies
       run: go mod download
@@ -36,10 +36,10 @@ jobs:
     steps:
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # ratchet:actions/checkout@v2
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # ratchet:golangci/golangci-lint-action@v2
 
       with:
         # Exclude deprecated PEM functions from the linter until
@@ -52,13 +52,13 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@0caeaed6fd66a828038c2da3c0f662a42862658f # ratchet:actions/setup-go@v1
       with:
         go-version: 1.17
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # ratchet:actions/checkout@v2
 
     - name: Get dependencies
       run: go mod download
