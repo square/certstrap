@@ -9,69 +9,69 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.18
-      id: go
+      - name: Set up Go
+        uses: actions/setup-go@0caeaed6fd66a828038c2da3c0f662a42862658f # ratchet:actions/setup-go@v1
+        with:
+          go-version: 1.18
+        id: go
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # ratchet:actions/checkout@v2
 
-    - name: Get dependencies
-      run: go mod download
+      - name: Get dependencies
+        run: go mod download
 
-    - name: Run tests
-      run: GODEBUG=x509sha1=1 go test -v ./...
+      - name: Run tests
+        run: GODEBUG=x509sha1=1 go test -v ./...
 
-    - name: Build binaries
-      run: go build -o . ./...
+      - name: Build binaries
+        run: go build -o . ./...
 
-    - name: Run integration tests
-      run: GODEBUG=x509sha1=1 go test -v -tags=integration ./...
+      - name: Run integration tests
+        run: GODEBUG=x509sha1=1 go test -v -tags=integration ./...
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # ratchet:actions/checkout@v2
 
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # ratchet:golangci/golangci-lint-action@v2
 
-      with:
-        # Exclude deprecated PEM functions from the linter until
-        # https://github.com/square/certstrap/issues/124 is resolved
-        args: --exclude '(De|En)cryptPEMBlock'
+        with:
+          # Exclude deprecated PEM functions from the linter until
+          # https://github.com/square/certstrap/issues/124 is resolved
+          args: --exclude '(De|En)cryptPEMBlock'
 
   build-windows:
     name: Build Windows
     runs-on: windows-latest
     steps:
 
-    - name: Set up Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.17
-      id: go
+      - name: Set up Go
+        uses: actions/setup-go@0caeaed6fd66a828038c2da3c0f662a42862658f # ratchet:actions/setup-go@v1
+        with:
+          go-version: 1.17
+        id: go
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # ratchet:actions/checkout@v2
 
-    - name: Get dependencies
-      run: go mod download
+      - name: Get dependencies
+        run: go mod download
 
-    - name: Run tests
-      run: |
-        set GODEBUG=x509sha1=1
-        go test -v ./...
+      - name: Run tests
+        run: |
+          set GODEBUG=x509sha1=1
+          go test -v ./...
 
-    - name: Build binaries
-      run: go build -o . ./...
+      - name: Build binaries
+        run: go build -o . ./...
 
-    - name: Run integration tests
-      run: |
-        set GODEBUG=x509sha1=1
-        go test -v -tags=integration ./...
+      - name: Run integration tests
+        run: |
+          set GODEBUG=x509sha1=1
+          go test -v -tags=integration ./...
