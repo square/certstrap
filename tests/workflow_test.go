@@ -22,7 +22,6 @@ package tests
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -100,7 +99,7 @@ func TestWorkflow(t *testing.T) {
 				t.Fatalf("Received incorrect create: %v", stdout)
 			}
 
-			fcontents, err := ioutil.ReadFile(path.Join(depotDir, strings.Join([]string{hostname, ".crt"}, "")))
+			fcontents, err := os.ReadFile(path.Join(depotDir, strings.Join([]string{hostname, ".crt"}, "")))
 			if err != nil {
 				t.Fatalf("Reading cert failed: %v", err)
 			}

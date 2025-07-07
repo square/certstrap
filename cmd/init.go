@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -153,7 +152,7 @@ func initAction(c *cli.Context) {
 	var key *pkix.Key
 	switch {
 	case c.IsSet("key"):
-		keyBytes, err := ioutil.ReadFile(c.String("key"))
+		keyBytes, err := os.ReadFile(c.String("key"))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Read Key error:", err)
 			os.Exit(1)
