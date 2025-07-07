@@ -22,13 +22,13 @@ jobs:
       run: go mod download
 
     - name: Run tests
-      run: GODEBUG=x509sha1=1 go test -v ./...
+      run: go test -v ./...
 
     - name: Build binaries
       run: go build -o . ./...
 
     - name: Run integration tests
-      run: GODEBUG=x509sha1=1 go test -v -tags=integration ./...
+      run: go test -v -tags=integration ./...
 
   lint:
     name: Lint
@@ -65,7 +65,6 @@ jobs:
 
     - name: Run tests
       run: |
-        set GODEBUG=x509sha1=1
         go test -v ./...
 
     - name: Build binaries
@@ -73,5 +72,4 @@ jobs:
 
     - name: Run integration tests
       run: |
-        set GODEBUG=x509sha1=1
         go test -v -tags=integration ./...
