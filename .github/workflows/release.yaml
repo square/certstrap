@@ -10,7 +10,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        version: [1.19.x]
+        version: [1.24.x]
         target:
           - { os: 'darwin', platform: 'macos-latest', arch: 'amd64' }
           - { os: 'darwin', platform: 'macos-latest', arch: 'arm64' }
