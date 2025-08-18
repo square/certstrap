@@ -18,9 +18,12 @@
 package depot
 
 import (
+	"crypto/rand"
+	"crypto/x509"
 	"strings"
 
 	"github.com/square/certstrap/pkix"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 const (
@@ -28,6 +31,7 @@ const (
 	csrSuffix     = ".csr"
 	privKeySuffix = ".key"
 	crlSuffix     = ".crl"
+	pfxSuffix     = ".pfx"
 )
 
 // CrtTag returns a tag corresponding to a certificate
@@ -48,6 +52,11 @@ func CsrTag(prefix string) *Tag {
 // CrlTag returns a tag corresponding to a certificate revocation list
 func CrlTag(prefix string) *Tag {
 	return &Tag{prefix + crlSuffix, LeafPerm}
+}
+
+// PfxTag returns a tag corresponding to a personal information exchange
+func PfxTag(prefix string) *Tag {
+	return &Tag{prefix + pfxSuffix, LeafPerm}
 }
 
 // GetNameFromCrtTag returns the host name from a certificate file tag
@@ -110,6 +119,11 @@ func PutCertificateSigningRequest(d Depot, name string, csr *pkix.CertificateSig
 // CheckCertificateSigningRequest checks the depot for existence of a certificate signing request file for a given host name
 func CheckCertificateSigningRequest(d Depot, name string) bool {
 	return d.Check(CsrTag(name))
+}
+
+// CheckPersonalInformationExchange checks the depot for existence of a pfx file for a given name
+func CheckPersonalInformationExchange(d Depot, name string) bool {
+	return d.Check(PfxTag(name))
 }
 
 // GetCertificateSigningRequest retrieves a certificate signing request file for a given host name from the depot
@@ -176,7 +190,28 @@ func PutCertificateRevocationList(d Depot, name string, crl *pkix.CertificateRev
 	return d.Put(CrlTag(name), b)
 }
 
-//GetCertificateRevocationList gets a CRL file for a given name and ca in the depot.
+// PutPersonalInformationExchange creates a Personal Information Exchange certificate file for a given name in the depot
+func PutPersonalInformationExchange(d Depot, name string, crt *pkix.Certificate, key *pkix.Key, caCrts []*pkix.Certificate, passphrase []byte) ([]byte, error) {
+	c, err := crt.GetRawCertificate()
+	if err != nil {
+		return nil, err
+	}
+	chain := []*x509.Certificate{}
+	for i := range caCrts {
+		cc, err := caCrts[i].GetRawCertificate()
+		if err != nil {
+			return nil, err
+		}
+		chain = append(chain, cc)
+	}
+	b, err := pkcs12.Encode(rand.Reader, key.Private, c, chain, string(passphrase))
+	if err != nil {
+		return nil, err
+	}
+	return b, d.Put(PfxTag(name), b)
+}
+
+// GetCertificateRevocationList gets a CRL file for a given name and ca in the depot.
 func GetCertificateRevocationList(d Depot, name string) (*pkix.CertificateRevocationList, error) {
 	b, err := d.Get(CrlTag(name))
 	if err != nil {
