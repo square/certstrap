@@ -68,7 +68,7 @@ Created out/Alice.csr
 
 certstrap requires either `-common-name` or `-domain` flag to be set in order to generate a certificate signing request.  The CN for the certificate will be found from these fields.
 
-If your server has mutiple ip addresses or domains, use comma seperated ip/domain/uri list. eg: `./certstrap request-cert -ip $ip1,$ip2 -domain $domain1,$domain2 -uri $uri1,$uri2`
+If your server has mutiple ip addresses, domains or organizational units, use comma seperated ip/domain/uri/ou list. eg: `./certstrap request-cert -ip $ip1,$ip2 -domain $domain1,$domain2 -uri $uri1,$uri2 -ou $org1,$org2`
 
 If you do not wish to generate a new keypair, you can use a pre-existing private
 PEM key with the `-key` flag

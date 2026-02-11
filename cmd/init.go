@@ -62,7 +62,7 @@ func NewInitCommand() cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "organizational-unit, ou",
-				Usage: "Sets the Organizational Unit (OU) field of the certificate",
+				Usage: "Sets the Organizational Unit (OU) values of the certificate",
 			},
 			cli.StringFlag{
 				Name:  "country, c",
