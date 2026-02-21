@@ -72,6 +72,10 @@ func NewSignCommand() cli.Command {
 				Value: 0,
 				Usage: "Maximum number of non-self-issued intermediate certificates that may follow this CA certificate in a valid certification path",
 			},
+			cli.BoolFlag{
+				Name:  "exclude-path-length",
+				Usage: "Exclude 'Path Length Constraint' from this CA certificate",
+			},
 		},
 		Action: newSignAction,
 	}
@@ -142,12 +146,17 @@ func newSignAction(c *cli.Context) {
 		}
 	}
 
+	if c.IsSet("path-length") && c.IsSet("exclude-path-length") {
+		fmt.Fprintf(os.Stderr, "The \"path-length\" and \"exclude-path-length\" flags cannot be used together!\n")
+		os.Exit(1)
+	}
+
 	var crtOut *pkix.Certificate
 	if c.Bool("intermediate") {
 		fmt.Fprintln(os.Stderr, "Building intermediate")
 
 		opts := []pkix.Option{
-			pkix.WithPathlenOption(c.Int("path-length"), false),
+			pkix.WithPathlenOption(c.Int("path-length"), c.Bool("exclude-path-length")),
 		}
 
 		crtOut, err = pkix.CreateIntermediateCertificateAuthorityWithOptions(crt, key, csr, expiresTime, opts...)
