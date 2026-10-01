@@ -208,6 +208,27 @@ type rsaPublicKey struct {
 	E int
 }
 
+// subjectPublicKeyInfo reflects the ASN.1 structure of a PKIX public key.
+type subjectPublicKeyInfo struct {
+	Algorithm        asn1.RawValue
+	SubjectPublicKey asn1.BitString
+}
+
+// ecdsaPublicKeyBytes returns the uncompressed point encoding of pub, as found
+// in the subjectPublicKey BIT STRING of its PKIX encoding. Unlike
+// ecdsa.PublicKey.ECDH, this supports P-224.
+func ecdsaPublicKeyBytes(pub *ecdsa.PublicKey) ([]byte, error) {
+	der, err := x509.MarshalPKIXPublicKey(pub)
+	if err != nil {
+		return nil, err
+	}
+	var spki subjectPublicKeyInfo
+	if _, err := asn1.Unmarshal(der, &spki); err != nil {
+		return nil, err
+	}
+	return spki.SubjectPublicKey.Bytes, nil
+}
+
 // GenerateSubjectKeyID generates SubjectKeyId used in Certificate
 // Id is 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
 func GenerateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
@@ -223,7 +244,10 @@ func GenerateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
 			return nil, err
 		}
 	case *ecdsa.PublicKey:
-		pubBytes = elliptic.Marshal(pub.Curve, pub.X, pub.Y)
+		pubBytes, err = ecdsaPublicKeyBytes(pub)
+		if err != nil {
+			return nil, err
+		}
 	case ed25519.PublicKey:
 		pubBytes = pub
 	default:
