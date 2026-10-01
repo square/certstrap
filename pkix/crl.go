@@ -34,6 +34,7 @@ const (
 
 // CreateCertificateRevocationList creates an empty CRL for ca, signed by its
 // key and valid until expiry. It is the CA's first CRL, so its CRL number is 1.
+// The CA certificate must have a subject key ID and the CRL signing key usage.
 func CreateCertificateRevocationList(key *Key, ca *Certificate, expiry time.Time) (*CertificateRevocationList, error) {
 	rawCrt, err := ca.GetRawCertificate()
 	if err != nil {

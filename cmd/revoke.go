@@ -104,7 +104,11 @@ func (c *revokeCommand) revocationList() (*x509.RevocationList, error) {
 		return nil, err
 	}
 
-	return parseRevocationList(list.DERBytes())
+	current, err := parseRevocationList(list.DERBytes())
+	if err != nil {
+		return nil, fmt.Errorf("could not parse CRL for CA %q: %w", c.ca, err)
+	}
+	return current, nil
 }
 
 func (c *revokeCommand) saveRevokedCertificates(ctx *cli.Context, cert *x509.Certificate, template *x509.RevocationList) error {

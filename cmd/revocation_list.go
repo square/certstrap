@@ -40,6 +40,11 @@ type v1CertificateList struct {
 // certstrap releases are also accepted, so that revoke keeps working with
 // existing depots; any other CRL that x509.ParseRevocationList rejects is
 // reported with its error.
+//
+// For a v1 CRL, only the fields that revoke carries over to the next CRL are
+// set: Number and RevokedCertificateEntries. The raw encodings, issuer,
+// validity period, CRL extensions and signature fields of the returned list
+// are left unset.
 func parseRevocationList(der []byte) (*x509.RevocationList, error) {
 	list, err := x509.ParseRevocationList(der)
 	if err == nil {
@@ -101,6 +106,12 @@ func unmarshalExtension(ext x509pkix.Extension, value any) error {
 // their revocation times, reason codes and other extensions, and the new entry
 // is appended. The CRL number is one more than current's, or 1 if current has
 // none (as with CRLs written before certstrap numbered them) or a negative one.
+//
+// Reason codes are normalized rather than copied byte for byte, because
+// x509.CreateRevocationList writes the reason code extension itself: an
+// explicit unspecified (0) reason code is omitted, as RFC 5280 section 5.3.1
+// recommends, and any other reason code is re-encoded as a non-critical
+// extension after the entry's other extensions, which can change their order.
 func nextRevocationList(current *x509.RevocationList, serial *big.Int, now time.Time) *x509.RevocationList {
 	entries := make([]x509.RevocationListEntry, 0, len(current.RevokedCertificateEntries)+1)
 	for _, entry := range current.RevokedCertificateEntries {

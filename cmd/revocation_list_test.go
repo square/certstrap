@@ -356,6 +356,107 @@ func TestNextRevocationListNumber(t *testing.T) {
 	}
 }
 
+// TestNextRevocationListReasonCodes checks how the reason codes of existing
+// entries end up in the CRL that x509.CreateRevocationList signs from the
+// template: an explicit unspecified (0) reason code is omitted, and other
+// reason codes are re-encoded as non-critical extensions after the entry's
+// other extensions, whose bytes are kept.
+func TestNextRevocationListReasonCodes(t *testing.T) {
+	ca, key := newTestRSACA(t)
+	invalidityDate := invalidityDateExtension(t)
+	critical := func(ext x509pkix.Extension) x509pkix.Extension {
+		ext.Critical = true
+		return ext
+	}
+
+	tests := []struct {
+		name           string
+		extensions     []x509pkix.Extension
+		wantReason     int
+		wantExtensions []x509pkix.Extension
+	}{{
+		name:           "unspecified",
+		extensions:     []x509pkix.Extension{reasonCodeExtension(t, 0), invalidityDate},
+		wantExtensions: []x509pkix.Extension{invalidityDate},
+	}, {
+		name:           "critical unspecified",
+		extensions:     []x509pkix.Extension{critical(reasonCodeExtension(t, 0)), invalidityDate},
+		wantExtensions: []x509pkix.Extension{invalidityDate},
+	}, {
+		name:           "key compromise",
+		extensions:     []x509pkix.Extension{reasonCodeExtension(t, 1), invalidityDate},
+		wantReason:     1,
+		wantExtensions: []x509pkix.Extension{invalidityDate, reasonCodeExtension(t, 1)},
+	}, {
+		name:           "critical key compromise",
+		extensions:     []x509pkix.Extension{critical(reasonCodeExtension(t, 1)), invalidityDate},
+		wantReason:     1,
+		wantExtensions: []x509pkix.Extension{invalidityDate, reasonCodeExtension(t, 1)},
+	}}
+
+	for _, version := range []struct {
+		name    string
+		version int
+	}{{"v1", 0}, {"v2", 1}} {
+		t.Run(version.name, func(t *testing.T) {
+			for _, tc := range tests {
+				t.Run(tc.name, func(t *testing.T) {
+					revoked := []x509pkix.RevokedCertificate{{
+						SerialNumber:   big.NewInt(10),
+						RevocationTime: testRevocationTime,
+						Extensions:     tc.extensions,
+					}, {
+						SerialNumber:   big.NewInt(11),
+						RevocationTime: secondTestRevocationTime,
+					}}
+					current, err := parseRevocationList(buildTestCRL(t, ca, key, version.version, revoked, nil))
+					if err != nil {
+						t.Fatalf("could not parse CRL: %v", err)
+					}
+					der, err := x509.CreateRevocationList(rand.Reader, nextRevocationList(current, big.NewInt(12), time.Now()), ca, key)
+					if err != nil {
+						t.Fatalf("could not create CRL: %v", err)
+					}
+					list, err := x509.ParseRevocationList(der)
+					if err != nil {
+						t.Fatalf("could not parse CRL: %v", err)
+					}
+					if err := list.CheckSignatureFrom(ca); err != nil {
+						t.Fatalf("CRL signature does not verify: %v", err)
+					}
+
+					entries := list.RevokedCertificateEntries
+					if len(entries) != 3 {
+						t.Fatalf("got %d revoked certificates, want 3", len(entries))
+					}
+					for i, serial := range []int64{10, 11, 12} {
+						if entries[i].SerialNumber.Int64() != serial {
+							t.Fatalf("entry %d serial = %v, want %d", i, entries[i].SerialNumber, serial)
+						}
+						if i > 0 && (len(entries[i].Extensions) != 0 || entries[i].ReasonCode != 0) {
+							t.Fatalf("entry %d = (%v, %d), want no extensions and reason code 0", i, entries[i].Extensions, entries[i].ReasonCode)
+						}
+					}
+
+					got := entries[0]
+					if got.ReasonCode != tc.wantReason {
+						t.Fatalf("ReasonCode = %d, want %d", got.ReasonCode, tc.wantReason)
+					}
+					if len(got.Extensions) != len(tc.wantExtensions) {
+						t.Fatalf("extensions = %v, want %v", got.Extensions, tc.wantExtensions)
+					}
+					for i, want := range tc.wantExtensions {
+						ext := got.Extensions[i]
+						if !ext.Id.Equal(want.Id) || ext.Critical != want.Critical || !bytes.Equal(ext.Value, want.Value) {
+							t.Fatalf("extension %d = %v, want %v", i, ext, want)
+						}
+					}
+				})
+			}
+		})
+	}
+}
+
 // TestNextRevocationListSigned revokes two certificates in turn, starting from
 // an unnumbered v1 CRL, and checks the CRLs that x509.CreateRevocationList
 // signs from the templates, for every key type.

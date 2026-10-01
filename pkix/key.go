@@ -231,6 +231,7 @@ func ecdsaPublicKeyBytes(pub *ecdsa.PublicKey) ([]byte, error) {
 
 // GenerateSubjectKeyID generates SubjectKeyId used in Certificate
 // Id is 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
+// ECDSA keys must use a named curve supported by x509.MarshalPKIXPublicKey.
 func GenerateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
 	var pubBytes []byte
 	var err error

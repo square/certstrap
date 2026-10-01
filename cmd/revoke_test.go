@@ -5,7 +5,9 @@ import (
 	"crypto/elliptic"
 	"crypto/x509"
 	x509pkix "crypto/x509/pkix"
+	"errors"
 	"flag"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -115,6 +117,31 @@ func TestRevokeCmdExistingCRL(t *testing.T) {
 				t.Fatal("certificates serial numbers are not equal")
 			}
 		})
+	}
+}
+
+// TestRevocationListMalformedCRL checks that a CRL in the depot that cannot be
+// parsed is reported with the name of its CA, wrapping the parser error.
+func TestRevocationListMalformedCRL(t *testing.T) {
+	setupDepot(t)
+	der := []byte("not a CRL")
+	if err := depot.PutCertificateRevocationList(d, caName, pkix.NewCertificateRevocationListFromDER(der)); err != nil {
+		t.Fatalf("could not put CRL: %v", err)
+	}
+	_, parseErr := parseRevocationList(der)
+	if parseErr == nil {
+		t.Fatal("parsed malformed CRL, want error")
+	}
+
+	_, err := (&revokeCommand{ca: caName}).revocationList()
+	if err == nil {
+		t.Fatal("got CRL, want error")
+	}
+	if want := fmt.Sprintf("could not parse CRL for CA %q: %v", caName, parseErr); err.Error() != want {
+		t.Fatalf("error = %q, want %q", err, want)
+	}
+	if unwrapped := errors.Unwrap(err); unwrapped == nil || unwrapped.Error() != parseErr.Error() {
+		t.Fatalf("unwrapped error = %v, want %v", unwrapped, parseErr)
 	}
 }
 
