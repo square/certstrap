@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/x509"
-	x509pkix "crypto/x509/pkix"
 	"errors"
 	"fmt"
 	"os"
@@ -73,15 +73,12 @@ func (c *revokeCommand) run(ctx *cli.Context) {
 	cnCert, err := c.CNx509Certificate()
 	c.checkErr(err)
 
-	revoked, err := c.revokedCertificates()
+	current, err := c.revocationList()
 	c.checkErr(err)
 
-	revoked = append(revoked, x509pkix.RevokedCertificate{
-		SerialNumber:   cnCert.SerialNumber,
-		RevocationTime: time.Now(),
-	})
+	next := nextRevocationList(current, cnCert.SerialNumber, time.Now())
 
-	err = c.saveRevokedCertificates(ctx, caCert, revoked)
+	err = c.saveRevokedCertificates(ctx, caCert, next)
 	c.checkErr(err)
 }
 
@@ -101,21 +98,20 @@ func (c *revokeCommand) CNx509Certificate() (*x509.Certificate, error) {
 	return cert.GetRawCertificate()
 }
 
-func (c *revokeCommand) revokedCertificates() ([]x509pkix.RevokedCertificate, error) {
+func (c *revokeCommand) revocationList() (*x509.RevocationList, error) {
 	list, err := depot.GetCertificateRevocationList(d, c.ca)
 	if err != nil {
 		return nil, err
 	}
 
-	certList, err := x509.ParseDERCRL(list.DERBytes())
+	current, err := parseRevocationList(list.DERBytes())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not parse CRL for CA %q: %w", c.ca, err)
 	}
-
-	return certList.TBSCertList.RevokedCertificates, nil
+	return current, nil
 }
 
-func (c *revokeCommand) saveRevokedCertificates(ctx *cli.Context, cert *x509.Certificate, list []x509pkix.RevokedCertificate) error {
+func (c *revokeCommand) saveRevokedCertificates(ctx *cli.Context, cert *x509.Certificate, template *x509.RevocationList) error {
 	privateKey, err := depot.GetPrivateKey(d, c.ca)
 	if err != nil {
 		pass, err := getPassPhrase(ctx, "CA key")
@@ -128,7 +124,11 @@ func (c *revokeCommand) saveRevokedCertificates(ctx *cli.Context, cert *x509.Cer
 		}
 	}
 
-	crlBytes, err := cert.CreateCRL(rand.Reader, privateKey.Private, list, time.Now(), time.Now().Add(2*8760*time.Hour))
+	signer, ok := privateKey.Private.(crypto.Signer)
+	if !ok {
+		return errors.New("could not create CRL: CA private key does not implement crypto.Signer")
+	}
+	crlBytes, err := x509.CreateRevocationList(rand.Reader, template, cert, signer)
 	if err != nil {
 		return fmt.Errorf("could not create CRL: %v", err)
 	}
