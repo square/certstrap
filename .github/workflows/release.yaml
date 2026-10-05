@@ -46,19 +46,28 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            version="${GITHUB_REF_NAME#v}"
-          else
-            version="dev-${GITHUB_SHA::7}"
-          fi
           out="dist/certstrap-${GOOS}-${GOARCH}"
-          go build -trimpath -ldflags "-X main.release=${version}" -o "$out" .
+          go build -trimpath -o "$out" .
 
           # Fail if the binary wasn't built for the requested platform.
           go version -m "$out" | grep -Eq "^[[:space:]]+build[[:space:]]+GOOS=${GOOS}$"
           go version -m "$out" | grep -Eq "^[[:space:]]+build[[:space:]]+GOARCH=${GOARCH}$"
+
+          # --version prints the module version that Go stamps from git. A tag
+          # build must report exactly that tag, and no build may be dirty or
+          # missing git metadata.
+          version=$(go version -m "$out" | awk '$1 == "mod" { print $3 }')
+          echo "Module version: ${version}"
+          if [[ "$GITHUB_REF" == refs/tags/* && "$version" != "$GITHUB_REF_NAME" ]]; then
+            echo "::error::binary reports ${version}, want tag ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+          if [[ "$version" == "(devel)" || "$version" == *+dirty ]]; then
+            echo "::error::binary reports ${version}, want a version from a clean git checkout"
+            exit 1
+          fi
           if [[ "$GOOS" == linux && "$GOARCH" == amd64 ]]; then
-            "./$out" --version | grep -F "$version"
+            test "$("./$out" --version)" = "certstrap version ${version#v}"
           fi
 
       - name: Upload artifact
