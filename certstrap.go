@@ -25,12 +25,10 @@ import (
 	"github.com/urfave/cli"
 )
 
-var release = "1.3.0"
-
 func main() {
 	app := cli.NewApp()
 	app.Name = "certstrap"
-	app.Version = release
+	app.Version = appVersion()
 	app.Usage = "A simple certificate manager written in Go, to bootstrap your own certificate authority and public key infrastructure."
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
