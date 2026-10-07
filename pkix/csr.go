@@ -78,11 +78,11 @@ func ParseAndValidateURIs(uriList string) (res []*url.URL, err error) {
 }
 
 // CreateCertificateSigningRequest sets up a request to create a csr file with the given parameters
-func CreateCertificateSigningRequest(key *Key, organizationalUnit string, ipList []net.IP, domainList []string, uriList []*url.URL, organization string, country string, province string, locality string, commonName string) (*CertificateSigningRequest, error) {
+func CreateCertificateSigningRequest(key *Key, organizationalUnits []string, ipList []net.IP, domainList []string, uriList []*url.URL, organization string, country string, province string, locality string, commonName string) (*CertificateSigningRequest, error) {
 	csrPkixName := pkix.Name{CommonName: commonName}
 
-	if len(organizationalUnit) > 0 {
-		csrPkixName.OrganizationalUnit = []string{organizationalUnit}
+	if len(organizationalUnits) > 0 {
+		csrPkixName.OrganizationalUnit = organizationalUnits
 	}
 	if len(organization) > 0 {
 		csrPkixName.Organization = []string{organization}
