@@ -1,6 +1,6 @@
 module github.com/square/certstrap
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef
