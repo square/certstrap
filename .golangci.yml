@@ -1,0 +1,18 @@
+version: "2"
+
+# Keep the checks that golangci-lint v1 ran by default, so that upgrading the
+# linter doesn't add findings by itself.
+linters:
+  settings:
+    staticcheck:
+      # v1 ran staticcheck (SA) and gosimple (S). v2 also folds stylecheck
+      # (ST) and quickfix (QF) into staticcheck.
+      checks: ["all", "-ST*", "-QF*"]
+  exclusions:
+    presets:
+      - std-error-handling
+    rules:
+      # RSA keys still use legacy PEM encryption until
+      # https://github.com/square/certstrap/issues/124 is resolved.
+      - linters: [staticcheck]
+        text: "(De|En)cryptPEMBlock"

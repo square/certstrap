@@ -37,7 +37,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # ratchet:actions/setup-go@v7.0.0
         with:
-          go-version-file: go.mod
+          # Build releases with the newest patch release of a supported Go,
+          # not the minimum version in go.mod. Older patch releases miss
+          # standard library security fixes.
+          go-version: "1.27.x"
+          check-latest: true
           cache: false
 
       - name: Build binary

@@ -47,13 +47,9 @@ jobs:
         go-version-file: go.mod
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # ratchet:golangci/golangci-lint-action@v6.5.2
-
+      uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # ratchet:golangci/golangci-lint-action@v9.3.0
       with:
-        version: v1.64.8
-        # Exclude deprecated PEM functions from the linter until
-        # https://github.com/square/certstrap/issues/124 is resolved
-        args: --exclude '(De|En)cryptPEMBlock'
+        version: v2.14.0
 
   build-windows:
     name: Build Windows
