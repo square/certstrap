@@ -5,7 +5,7 @@ go 1.27.3
 require (
 	github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef
 	github.com/urfave/cli v1.22.17
-	go.step.sm/crypto v0.91.0
+	go.step.sm/crypto v0.91.1
 )
 
 require (
